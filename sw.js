@@ -3,7 +3,7 @@ const CORE = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).catch(() => {}));
-  // Pas de skipWaiting automatique — on attend la confirmation utilisateur
+  self.skipWaiting(); // activation immédiate — mise à jour transparente
 });
 
 self.addEventListener('activate', e => {

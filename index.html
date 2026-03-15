@@ -72,6 +72,7 @@ select.inp{cursor:pointer}
 .dpw-cards{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
 .dpw-card{display:flex;align-items:flex-start;gap:11px;padding:12px;background:var(--card);border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all .2s;text-align:left;-webkit-tap-highlight-color:transparent}
 .dpw-card.sel{border-color:var(--orange);background:rgba(249,115,22,.08)}
+.dpw-card.disabled{opacity:.55;cursor:not-allowed;pointer-events:none;border-style:dashed}
 .dpw-n{font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;color:var(--orange);min-width:30px}
 .dpw-t{font-size:13px;font-weight:700;color:var(--text)}
 .dpw-s{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
@@ -849,18 +850,33 @@ function getSchedule(prog,week,prefDays,dpw){
     selected.forEach((item,idx)=>{const day=sorted[idx];if(day!==undefined)base[day]={s:item.s,req:true,di:day,optional:false,movedFrom:null,movedTo:null};});
     skipped.forEach(item=>{const day=item.i;if(!base[day].req)base[day]={s:item.s,req:false,di:day,optional:true,movedFrom:null,movedTo:null};});
   }
+  // ── Appliquer les déplacements en DEUX passes ──────────
+  // Passe 1 : collecter tous les moves depuis la base ORIGINALE
+  const moves=[];
   for(let d=0;d<7;d++){
     const sess=gs(week,d);
     if(sess?.movedTo!==undefined&&sess.movedTo!==null&&sess.movedTo!==d){
-      const orig=base[d];const dest=sess.movedTo;
-      if(orig.s.type!=='r'){
-        base[d]={s:R(),req:false,di:d,optional:false,movedFrom:null,movedTo:null,movedAway:true,origSession:orig.s};
-        if(base[dest]&&(base[dest].s.type==='r'||!base[dest].req)){
-          base[dest]={s:orig.s,req:true,di:dest,optional:false,movedFrom:d,movedTo:null};
-        }
+      if(base[d].s.type!=='r'){
+        moves.push({from:d,to:sess.movedTo,s:base[d].s});
       }
     }
   }
+  // Passe 2 : appliquer les moves sans interférence entre eux
+  // D'abord marquer toutes les origines comme vides
+  moves.forEach(({from,s})=>{
+    base[from]={s:R(),req:false,di:from,optional:false,movedFrom:null,movedTo:null,movedAway:true,origSession:s};
+  });
+  // Ensuite placer aux destinations (la case est libre si elle est de type 'r' maintenant)
+  moves.forEach(({from,to,s})=>{
+    if(base[to]&&base[to].s.type==='r'){
+      base[to]={s,req:true,di:to,optional:false,movedFrom:from,movedTo:null};
+    }
+    // Si la destination est déjà occupée par une autre session déplacée là, on empile (both)
+    else if(base[to]&&base[to].movedFrom!==undefined){
+      // deux sessions sur le même jour — on garde les deux en affichant une note
+      base[to]={s,req:true,di:to,optional:false,movedFrom:from,movedTo:null,hasConflict:true};
+    }
+  });
   _schedCache[key]=base;
   return base;
 }
@@ -968,7 +984,17 @@ async function fetchData(){
   if(r.startDate&&!auth.startDate){auth.startDate=r.startDate;saveA();}
   if(r.program&&!auth.program){auth.program=r.program;auth.daysPerWeek=r.daysPerWeek||5;auth.preferredDays=r.preferredDays||[];saveA();}
   saveL();
+  // Re-rend l'écran actif pour refléter les données fraîches
+  renderAll();
 }
+
+// Polling toutes les 30s quand l'app est en ligne et visible
+setInterval(()=>{
+  if(auth&&navigator.onLine&&!document.hidden)fetchData().then(syncPending);
+},30000);
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&auth&&navigator.onLine)fetchData().then(syncPending);
+});
 
 // ═══════════════════════════════════════════════════
 // AUTH
@@ -1041,15 +1067,20 @@ function wizProg(){return`<h2 class="ptitle" style="font-size:20px;margin-bottom
 <div class="prog-card ${wizData.program==='10km'?'sel':''}" onclick="selP('10km')"><div class="pc-em">🏅</div><div class="pc-t">10 km</div><div class="pc-s">18 sem. · Forme de base requise</div></div>
 </div><div class="wiz-nav"><button class="btn primary" onclick="wizN()">Continuer →</button></div>`;}
 function selP(p){wizData.program=p;document.querySelectorAll('.prog-card').forEach(c=>c.classList.toggle('sel',c.onclick.toString().includes("'"+p+"'")));}
-function wizDPW(){const opts=[
-  {n:3,t:'3 jours / semaine',s:'Les séances clés sont conservées. Programme allégé.',cls:'box-warn',i:'⚠️'},
-  {n:4,t:'4 jours / semaine',s:'Bon compromis. Toutes les séances importantes sont là.',cls:'box-info',i:'ℹ️'},
-  {n:5,t:'5 jours / semaine — Recommandé',s:'Programme complet tel que conçu. Progression optimale.',cls:'box-ok',i:'✅'},
-];
+function wizDPW(){
+  const is10km=wizData.program==='10km';
+  // Pour le 10km, 3 jours n'est pas suffisant — minimum 4
+  if(is10km&&wizData.daysPerWeek===3){wizData.daysPerWeek=4;wizData.preferredDays=[1,2,3,6];}
+  const opts=[
+    {n:3,t:'3 jours / semaine',s:is10km?'Non disponible pour le 10 km — charge insuffisante.':'Les séances clés sont conservées. Programme allégé.',cls:is10km?'box-warn':'box-warn',i:is10km?'🚫':'⚠️',disabled:is10km},
+    {n:4,t:'4 jours / semaine',s:'Bon compromis. Toutes les séances importantes sont là.',cls:'box-info',i:'ℹ️',disabled:false},
+    {n:5,t:'5 jours / semaine — Recommandé',s:'Programme complet tel que conçu. Progression optimale.',cls:'box-ok',i:'✅',disabled:false},
+  ];
 return`<h2 class="ptitle" style="font-size:20px;margin-bottom:8px">Combien de jours ?</h2>
 <p class="psub" style="margin-bottom:14px">La régularité compte plus que la quantité !</p>
-<div class="dpw-cards">${opts.map(o=>`<div class="dpw-card ${wizData.daysPerWeek===o.n?'sel':''}" onclick="selDPW(${o.n})">
-<div class="dpw-n">${o.n}</div><div><div class="dpw-t">${o.t}</div><div class="${o.cls}" style="margin:4px 0 0">${o.i} ${o.s}</div></div></div>`).join('')}</div>
+<div class="dpw-cards">${opts.map(o=>`<div class="dpw-card ${wizData.daysPerWeek===o.n?'sel':''} ${o.disabled?'disabled':''}" onclick="${o.disabled?'':'selDPW('+o.n+')'}">
+<div class="dpw-n" style="${o.disabled?'opacity:.35':''}">${o.n}</div><div><div class="dpw-t" style="${o.disabled?'opacity:.5':''}">${o.t}</div><div class="${o.cls}" style="margin:4px 0 0">${o.i} ${o.s}</div></div></div>`).join('')}</div>
+${is10km?`<div class="box-warn">🏅 Le programme 10 km requiert au minimum 4 séances par semaine pour une progression sécuritaire.</div>`:''}
 <div class="wiz-nav"><button class="btn" onclick="wizB()" style="flex:.4">← Retour</button>
 <button class="btn primary" style="flex:1" onclick="wizN()">Continuer →</button></div>`;}
 function selDPW(n){wizData.daysPerWeek=n;if(n===5)wizData.preferredDays=[1,2,3,5,6];if(n===4)wizData.preferredDays=[1,2,3,6];if(n===3)wizData.preferredDays=[1,3,6];
@@ -1523,6 +1554,8 @@ function openProfile(){
   document.getElementById('profOverlay').classList.add('open');
   document.getElementById('profSheet').classList.add('open');
   document.body.style.overflow='hidden';
+  // Désactiver 3j si 10km
+  setTimeout(refreshDpwButtons,0);
 }
 
 function setPProg(p){
@@ -1531,13 +1564,36 @@ function setPProg(p){
     const t=b.textContent.trim().replace(/\s/g,'');
     if(t==='5km'||t==='10km')b.classList.toggle('on',t===p);
   });
+  // Si on passe au 10km avec 3 jours sélectionnés, forcer à 4
+  if(p==='10km'&&(auth._tmpDpw||auth.daysPerWeek||5)===3){
+    setPDpw(4);
+    toast('⚠️ Programme 10 km : minimum 4 jours/semaine requis.');
+  }
+  refreshDpwButtons();
 }
 function setPDpw(n){
+  const currentProg=auth._tmpProg||auth.program||'5km';
+  // 10km ne peut pas être 3 jours
+  if(n===3&&currentProg==='10km'){
+    toast('⚠️ Le programme 10 km requiert minimum 4 jours/semaine.');
+    return;
+  }
   auth._tmpDpw=n;
   document.querySelectorAll('.pseg-opt').forEach(b=>{if(['3 j.','4 j.','5 j.'].includes(b.textContent.trim()))b.classList.toggle('on',b.textContent.trim()===(n+' j.'));});
-  // Trim days if needed
   while(pDaysTmp&&pDaysTmp.length>n)pDaysTmp.pop();
   refreshPDayPicker();
+  // Mettre à jour l'état visuel du bouton 3j en fonction du programme actif
+  refreshDpwButtons();
+}
+function refreshDpwButtons(){
+  const currentProg=auth._tmpProg||auth.program||'5km';
+  document.querySelectorAll('.pseg-opt').forEach(b=>{
+    if(b.textContent.trim()==='3 j.'){
+      b.disabled=currentProg==='10km';
+      b.style.opacity=currentProg==='10km'?'0.4':'';
+      b.title=currentProg==='10km'?'Non disponible pour le programme 10 km':'';
+    }
+  });
 }
 function togPDay(i){
   if(!pDaysTmp)pDaysTmp=[...(auth?.preferredDays||[])];
@@ -1913,25 +1969,21 @@ window.addEventListener('offline',()=>setSyncDot('e'));
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('./sw.js').then(reg=>{
-      // Détecter une mise à jour en attente
       reg.addEventListener('updatefound',()=>{
         const nw=reg.installing;
         if(!nw)return;
         nw.addEventListener('statechange',()=>{
           if(nw.state==='installed'&&navigator.serviceWorker.controller){
-            // Nouvelle version prête — afficher bannière
-            document.getElementById('updateBanner').classList.add('vis');
-            window._pendingSW=nw;
+            // Mise à jour silencieuse — on envoie skipWaiting directement
+            nw.postMessage('skipWaiting');
           }
         });
       });
-      // Vérifier si un SW en attente existe déjà au chargement
+      // SW en attente au chargement → activer immédiatement
       if(reg.waiting&&navigator.serviceWorker.controller){
-        document.getElementById('updateBanner').classList.add('vis');
-        window._pendingSW=reg.waiting;
+        reg.waiting.postMessage('skipWaiting');
       }
     }).catch(()=>{});
-    // Recharger quand le SW prend le contrôle après skipWaiting
     let refreshing=false;
     navigator.serviceWorker.addEventListener('controllerchange',()=>{
       if(refreshing)return;refreshing=true;location.reload();
