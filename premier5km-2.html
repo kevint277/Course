@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mon Premier 5 km — La Clinique du Coureur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0A0F1E;
+  --surface: #111827;
+  --card: #1C2333;
+  --border: #2A3348;
+  --text: #E8EDF5;
+  --muted: #7B8BAA;
+  --orange: #F97316;
+  --orange-d: #C2550E;
+  --blue: #3B82F6;
+  --red: #EF4444;
+  --purple: #A855F7;
+  --teal: #14B8A6;
+  --green: #22C55E;
+  --yellow: #EAB308;
+  --amorce: #F97316;
+  --progression: #3B82F6;
+  --intensive: #EF4444;
+  --affutage: #A855F7;
+  --post: #14B8A6;
+  --radius: 14px;
+  --modal-z: 1000;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  min-height: 100vh;
+  padding-bottom: 100px;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ── */
+.app-header {
+  position: sticky; top: 0; z-index: 100;
+  background: linear-gradient(180deg, #0A0F1E 80%, transparent);
+  padding: 16px 20px 10px;
+}
+.app-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.app-subtitle {
+  font-family: 'Oswald', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+}
+.app-subtitle span { color: var(--orange); }
+
+/* ── PHASE BAR ── */
+.phase-banner {
+  margin: 8px 20px 0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.4s;
+}
+.phase-banner .phase-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.6);
+}
+
+/* ── WEEK NAV ── */
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 0;
+  gap: 12px;
+}
+.week-nav-center { flex: 1; text-align: center; }
+.week-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+.week-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.nav-btn {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-btn:hover { background: var(--border); }
+.nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── PROGRESS ── */
+.progress-wrap {
+  padding: 12px 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.progress-bar-bg {
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--orange);
+  transition: width 0.5s cubic-bezier(.4,0,.2,1);
+}
+.progress-text {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  min-width: 50px;
+  text-align: right;
+}
+
+/* ── WEEK DOTS ── */
+.week-dots {
+  display: flex;
+  gap: 5px;
+  padding: 10px 20px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.week-dots::-webkit-scrollbar { display: none; }
+.week-dot {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  border: none;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  display: flex; align-items: center; justify-content: center;
+}
+.week-dot.active { color: white; transform: scale(1.1); }
+.week-dot:not(.active) { background: var(--card); color: var(--muted); }
+
+/* ── DAYS GRID ── */
+.days-grid {
+  padding: 16px 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── DAY CARD ── */
+.day-card {
+  display: flex;
+  align-items: stretch;
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  border: 1px solid var(--border);
+  background: var(--card);
+  min-height: 62px;
+}
+.day-card:active { transform: scale(0.98); }
+.day-card.repos { opacity: 0.5; cursor: default; }
+.day-card.repos:active { transform: none; }
+.day-card-accent {
+  width: 5px;
+  flex-shrink: 0;
+}
+.day-card-body {
+  flex: 1;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.day-name-col { min-width: 68px; }
+.day-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.day-card.repos .day-name { color: var(--border); }
+.day-info { flex: 1; }
+.day-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+.day-card.repos .day-title { color: var(--muted); font-weight: 400; }
+.day-desc {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 1px;
+  line-height: 1.3;
+}
+.day-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.diff-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.duration-badge {
+  font-size: 11px;
+  color: var(--muted);
+}
+.chevron {
+  font-size: 14px;
+  color: var(--border);
+  margin-left: 4px;
+}
+
+/* Difficulty colors */
+.diff-easy   { background: rgba(34,197,94,0.15); color: #4ADE80; }
+.diff-mod    { background: rgba(234,179,8,0.15); color: #FCD34D; }
+.diff-hard   { background: rgba(239,68,68,0.15); color: #F87171; }
+.diff-max    { background: rgba(239,68,68,0.3); color: #FCA5A5; }
+.diff-race   { background: rgba(249,115,22,0.2); color: #FB923C; }
+.diff-rest   { background: var(--border); color: var(--muted); }
+
+/* Accent colors per type */
+.accent-repos      { background: var(--border); }
+.accent-easy       { background: var(--green); }
+.accent-mod        { background: var(--yellow); }
+.accent-hard       { background: var(--red); }
+.accent-max        { background: #B91C1C; }
+.accent-race       { background: var(--orange); }
+.accent-cross      { background: var(--teal); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+  z-index: var(--modal-z);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.modal-sheet {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-radius: 22px 22px 0 0;
+  padding: 0 0 40px;
+  z-index: calc(var(--modal-z) + 1);
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+}
+.modal-sheet.open { transform: translateY(0); }
+.modal-handle {
+  width: 40px; height: 4px;
+  background: var(--border);
+  border-radius: 99px;
+  margin: 12px auto 0;
+}
+.modal-header {
+  padding: 16px 20px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.modal-day-tag {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.modal-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  margin-top: 4px;
+}
+.modal-close {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.modal-body { padding: 16px 20px 0; }
+
+/* Modal sections */
+.modal-section {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+}
+.modal-section-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.step-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.step-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.step-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.step-text { flex: 1; }
+.step-text strong { color: var(--orange); }
+
+/* Effort meter */
+.effort-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.effort-dots {
+  display: flex;
+  gap: 4px;
+}
+.effort-dot {
+  width: 18px; height: 8px;
+  border-radius: 99px;
+  background: var(--border);
+}
+.effort-dot.lit { }
+.effort-label { font-size: 14px; font-weight: 700; }
+.effort-desc { font-size: 13px; color: var(--muted); line-height: 1.5; margin-top: 6px; }
+
+/* Tip box */
+.tip-box {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(249,115,22,0.08);
+  border: 1px solid rgba(249,115,22,0.2);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+.tip-icon { font-size: 20px; flex-shrink: 0; }
+.tip-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+/* App card */
+.app-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  text-decoration: none;
+}
+.app-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.app-info { flex: 1; }
+.app-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.app-desc { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+.app-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(34,197,94,0.15);
+  color: #4ADE80;
+}
+
+/* ── TOOLS PANEL ── */
+.tools-panel {
+  padding: 0 20px;
+  margin-top: 20px;
+}
+.tools-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+/* ── BOTTOM BAR ── */
+.bottom-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  gap: 8px;
+  z-index: 90;
+}
+.btn-print {
+  flex: 1;
+  padding: 11px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-print:hover { background: var(--border); }
+.btn-print .icon { font-size: 17px; }
+.btn-print.primary {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: white;
+}
+.btn-print.primary:hover { background: var(--orange-d); }
+
+/* ── FOOTER ── */
+.app-footer {
+  padding: 28px 20px 16px;
+  text-align: center;
+}
+.footer-logo {
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.footer-copy {
+  font-size: 11px;
+  color: var(--border);
+}
+.footer-copy a { color: var(--muted); text-decoration: none; }
+
+/* ── RACE DAY CARD ── */
+.race-card {
+  background: linear-gradient(135deg, rgba(249,115,22,0.15), rgba(239,68,68,0.15));
+  border: 1px solid rgba(249,115,22,0.4);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 0 20px;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.race-emoji { font-size: 36px; margin-bottom: 8px; }
+.race-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--orange);
+}
+.race-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+/* ── PRINT CSS ── */
+@media print {
+  body { background: white; color: #000; padding: 0; font-size: 10pt; }
+  .app-header, .week-nav, .progress-wrap, .week-dots,
+  .bottom-bar, .modal-overlay, .modal-sheet, .tools-panel { display: none !important; }
+  .days-grid { padding: 4px 8px; gap: 4px; }
+  .day-card { border: 1px solid #ccc !important; background: white !important; min-height: auto; }
+  .day-card-accent { width: 4px; }
+  .day-name { color: #666 !important; font-size: 10pt; }
+  .day-title { font-size: 10pt; color: #000 !important; }
+  .day-desc { font-size: 9pt; color: #444 !important; }
+  .diff-badge { border: 1px solid #ccc; background: none !important; color: #000 !important; }
+  .print-header { display: block !important; padding: 8px; border-bottom: 2px solid #000; margin-bottom: 8px; }
+  .app-footer { display: block !important; border-top: 1px solid #ccc; padding: 4px; font-size: 8pt; color: #666; }
+  .phase-banner { background: none !important; color: #000 !important; border: 1px solid #ccc; }
+}
+.print-header { display: none; }
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.days-grid { animation: fadeIn 0.3s ease; }
+
+/* Race week special */
+.week-complete-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #4ADE80;
+  font-weight: 600;
+  margin: 8px 20px 0;
+}
+
+/* Interval setup box */
+.interval-setup {
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 8px;
+}
+.interval-setup-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.interval-config {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.interval-config-item {
+  background: var(--card);
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+}
+.interval-config-item .val {
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--blue);
+}
+.interval-config-item .lbl {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+</style>
+</head>
+<body>
+
+<!-- PRINT HEADER (only visible when printing) -->
+<div class="print-header" id="printHeader">
+  <strong>Programme d'entraînement No 10 — Courir un premier 5 km</strong> | La Clinique du Coureur
+</div>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="app-title">Programme No 10</div>
+  <div class="app-subtitle">Mon Premier <span>5 km</span></div>
+</div>
+
+<div class="phase-banner" id="phaseBanner">
+  <div class="phase-dot"></div>
+  <span id="phaseText">Phase d'amorce</span>
+</div>
+
+<!-- WEEK NAV -->
+<div class="week-nav">
+  <button class="nav-btn" id="btnPrev" onclick="changeWeek(-1)">&#8249;</button>
+  <div class="week-nav-center">
+    <div class="week-label" id="weekLabel">Semaine 1</div>
+    <div class="week-sub" id="weekSub">sur 18 semaines</div>
+  </div>
+  <button class="nav-btn" id="btnNext" onclick="changeWeek(1)">&#8250;</button>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progressFill" style="width:6%"></div>
+  </div>
+  <div class="progress-text" id="progressText">1 / 18</div>
+</div>
+
+<!-- WEEK DOTS -->
+<div class="week-dots" id="weekDots"></div>
+
+<!-- MAIN CONTENT -->
+<div id="mainContent"></div>
+
+<!-- TOOLS SECTION -->
+<div class="tools-panel" id="toolsPanel" style="display:none">
+  <div class="tools-title">⚡ Outils recommandés</div>
+  <a class="app-card" href="https://play.google.com/store/apps/details?id=com.ihunda.android.itrainer" target="_blank">
+    <div class="app-icon" style="background:rgba(59,130,246,0.15)">⏱️</div>
+    <div class="app-info">
+      <div class="app-name">Interval Timer — HIIT Workout</div>
+      <div class="app-desc">Parfait pour les séances EPI. Configure tes intervalles en quelques secondes et laisse l'app gérer le chrono.</div>
+    </div>
+    <span class="app-badge">Android</span>
+  </a>
+  <a class="app-card" href="https://apps.apple.com/app/seconds-interval-timer/id363978811" target="_blank">
+    <div class="app-icon" style="background:rgba(168,85,247,0.15)">⏱️</div>
+    <div class="app-info">
+      <div class="app-name">Seconds Interval Timer</div>
+      <div class="app-desc">Application très complète pour iOS. Crée tes programmes d'intervalles personnalisés et sauvegarde-les.</div>
+    </div>
+    <span class="app-badge">iOS</span>
+  </a>
+  <a class="app-card" href="https://www.strava.com" target="_blank">
+    <div class="app-icon" style="background:rgba(249,115,22,0.15)">🏃</div>
+    <div class="app-info">
+      <div class="app-name">Strava</div>
+      <div class="app-desc">Suivi GPS de tes courses. Analyse ta cadence, vitesse, fréquence cardiaque et partage tes progrès.</div>
+    </div>
+    <span class="app-badge">Gratuit</span>
+  </a>
+  <a class="app-card" href="https://www.nike.com/ca/nrc-app" target="_blank">
+    <div class="app-icon" style="background:rgba(255,255,255,0.08)">👟</div>
+    <div class="app-info">
+      <div class="app-name">Nike Run Club</div>
+      <div class="app-desc">Programmes guidés, coaching audio et suivi de tes courses. Idéal pour les débutants.</div>
+    </div>
+    <span class="app-badge">Gratuit</span>
+  </a>
+</div>
+
+<!-- FOOTER -->
+<div class="app-footer">
+  <div class="footer-logo">La Clinique du Coureur</div>
+  <div class="footer-copy">
+    Créé par <strong>Kevin Tremblay</strong> &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp;
+    <a href="https://lacliniqueducoureur.com" target="_blank">lacliniqueducoureur.com</a>
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <button class="btn-print" onclick="toggleTools()">
+    <span class="icon">🛠️</span>
+    <span>Outils</span>
+  </button>
+  <button class="btn-print" onclick="printWeek()">
+    <span class="icon">🖨️</span>
+    <span>Semaine</span>
+  </button>
+  <button class="btn-print primary" onclick="printFull()">
+    <span class="icon">📄</span>
+    <span>Programme</span>
+  </button>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()"></div>
+<div class="modal-sheet" id="modalSheet">
+  <div class="modal-handle"></div>
+  <div class="modal-header">
+    <div>
+      <div class="modal-day-tag" id="modalDayTag"></div>
+      <div class="modal-title" id="modalTitle"></div>
+    </div>
+    <button class="modal-close" onclick="closeModal()">✕</button>
+  </div>
+  <div class="modal-body" id="modalBody"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// PROGRAM DATA
+// Types: 'repos' | 'ec' | 'alterne' | 'epi' | 'cross' | 'course'
+// ═══════════════════════════════════════════════════════════════════
+const PHASES = [
+  { name:"Phase d'amorce",            color:"#F97316", weeks:[1,2,3,4],           key:'amorce' },
+  { name:"Phase de progression",       color:"#3B82F6", weeks:[5,6,7,8,9,10,11,12], key:'progression' },
+  { name:"Phase intensive",            color:"#EF4444", weeks:[13,14],             key:'intensive' },
+  { name:"Phase d'affûtage",           color:"#A855F7", weeks:[15,16],             key:'affutage' },
+  { name:"Phase post-5 km",            color:"#14B8A6", weeks:[17,18],             key:'post' },
+];
+
+const DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+
+// Session helper factories
+const R = () => ({ type:'repos' });
+const EC = (dur, diff) => ({ type:'ec', dur, diff });
+const ALT = (dur, reps, run, walk, diff) => ({ type:'alterne', dur, reps, run, walk, diff });
+const EPI = (dur, diff, pattern) => ({ type:'epi', dur, diff, pattern });
+const CROSS = (dur, diff) => ({ type:'cross', dur, diff });
+const COURSE = () => ({ type:'course' });
+
+// pattern: [runSec, recupSec] in seconds
+const P15_15 = [15,15]; const P15_30 = [15,30]; const P15_15_or_30 = [15,'15 ou 30'];
+const P1_1 = [60,60]; const P1_2 = [60,120];
+const P3_1 = [180,60]; const P3_2 = [180,120];
+const P5_1 = [300,60]; const P5_2 = [300,120];
+
+// ─── 18 WEEKS × 7 DAYS ───────────────────────────────────────────
+const WEEKS = {
+  1: [R(), ALT(6,3,1,1,'2-4'), ALT(8,4,1,1,'2-4'), ALT(10,4,1,1,'2-4'), R(), ALT(12,6,1,1,'2'), EC(5,'4')],
+  2: [R(), ALT(14,7,1,1,'2-4'), ALT(16,8,1,1,'2-4'), ALT(18,9,1,1,'2-4'), R(), ALT(10,5,1,1,'2'), EC(10,'4')],
+  3: [R(), ALT(15,5,2,1,'2-4'), ALT(18,6,2,1,'2-4'), ALT(21,7,2,1,'2-4'), R(), ALT(15,5,2,1,'2'), EC(10,'5')],
+  4: [R(), ALT(20,5,3,1,'2-4'), ALT(20,4,4,1,'2-4'), ALT(25,5,4,1,'2-4'), R(), EC(10,'2'), EC(15,'5')],
+  5: [R(), EPI(15,'6',P15_15_or_30), EC(10,'2-4'), EC(15,'2-4'), R(), EC(10,'2'), EC(15,'6-7')],
+  6: [R(), EPI(20,'6',P15_15_or_30), EC(10,'2-4'), EC(15,'2-4'), R(), EC(10,'2'), EC(20,'6-7')],
+  7: [R(), EPI(20,'6',P15_15_or_30), EC(10,'2-4'), EPI(20,'6',P1_1), R(), EC(10,'3'), EC(20,'6-7')],
+  8: [R(), EPI(25,'6',P15_15_or_30), EC(15,'2-4'), EPI(20,'6',P1_1), R(), EC(10,'3'), EC(20,'6-7')],
+  9: [R(), EPI(25,'6',P15_15_or_30), EC(15,'2-4'), EPI(25,'6',P1_1), R(), EC(10,'3'), EC(25,'6-7')],
+  10:[R(), EPI(25,'6',P15_15_or_30), EC(15,'2-4'), EPI(25,'7',P3_1), R(), EC(15,'3'), EC(25,'7')],
+  11:[R(), EPI(30,'6',P1_1), EC(20,'2-4'), EPI(25,'7',P3_1), R(), EC(15,'3'), EC(30,'8')],
+  12:[R(), EPI(25,'6',P1_1), EC(20,'2-4'), EPI(25,'6',P3_1), R(), EC(15,'3'), EC(20,'5')],
+  13:[R(), EPI(30,'8',P1_1), EC(25,'2-4'), EPI(30,'8',P5_1), R(), EC(20,'3'), EC(30,'9')],
+  14:[R(), EPI(30,'8',P3_1), EC(25,'2-4'), EPI(30,'8',P5_1), R(), EC(20,'3'), EC(30,'9')],
+  15:[R(), EPI(30,'6',P15_15_or_30), EC(15,'2-4'), EPI(30,'6',P1_1), R(), EPI(20,'3',P15_15_or_30), EC(25,'8')],
+  16:[R(), EPI(20,'6',P1_1), EC(15,'2-4'), R(), EPI(25,'3',P15_15_or_30), COURSE(), R()],
+  17:[R(), R(), R(), CROSS(10,'2'), CROSS(20,'3'), ALT(10,5,1,1,'2'), ALT(14,7,1,1,'2')],
+  18:[R(), ALT(20,10,2,1,'2-4'), ALT(21,7,2,1,'2-4'), R(), ALT(30,10,2,1,'2-4'), ALT(28,7,3,1,'2-4'), ALT(40,10,3,1,'2-4')],
+};
+
+// ─── EFFORT CONFIG ────────────────────────────────────────────────
+const EFFORT = {
+  '2':   { label:'Très facile', desc:'Tu respires par le nez, conversation tout à fait normale. Tu pourrais chanter.', badge:'Très facile', cls:'diff-easy', accent:'accent-easy', dots:2 },
+  '2-4': { label:'Facile', desc:'Effort très confortable. Tu parles en phrases complètes sans être essoufflé. C\'est bon signe !', badge:'Facile', cls:'diff-easy', accent:'accent-easy', dots:3 },
+  '3':   { label:'Facile', desc:'Légèrement essoufflé, mais tu parles en phrases complètes. Rythme conversationnel.', badge:'Facile', cls:'diff-easy', accent:'accent-easy', dots:3 },
+  '4':   { label:'Facile–Modéré', desc:'Tu sens l\'effort. Tu parles facilement, mais pas sans y penser.', badge:'Facile–Modéré', cls:'diff-easy', accent:'accent-easy', dots:4 },
+  '5':   { label:'Modéré', desc:'Tu parles en courtes phrases de 3–5 mots. Tu respires par la bouche.', badge:'Modéré', cls:'diff-mod', accent:'accent-mod', dots:5 },
+  '6':   { label:'Soutenu', desc:'Difficile de parler — quelques mots à la fois seulement. Tu souffles fort.', badge:'Soutenu', cls:'diff-hard', accent:'accent-hard', dots:6 },
+  '6-7': { label:'Soutenu–Vigoureux', desc:'Très difficile de parler. Tu respires fort par la bouche, tu sens la brûlure.', badge:'Soutenu–Vigoureux', cls:'diff-hard', accent:'accent-hard', dots:7 },
+  '7':   { label:'Vigoureux', desc:'À peine capable de prononcer un mot. Tu donnes beaucoup.', badge:'Vigoureux', cls:'diff-hard', accent:'accent-hard', dots:7 },
+  '8':   { label:'Intense', desc:'Impossible de parler. Tu souffles fort, tu travailles à fond.', badge:'Intense', cls:'diff-max', accent:'accent-max', dots:8 },
+  '9':   { label:'Quasi-maximum', desc:'Tu donnes absolument tout. Comme en compétition. Souffle d\'enfer.', badge:'Quasi-max', cls:'diff-max', accent:'accent-max', dots:9 },
+};
+
+// ─── PATTERN TEXT HELPERS ─────────────────────────────────────────
+function patternText(p) {
+  if (!p) return '';
+  if (p[0] === 15 && p[1] === '15 ou 30') return '15 sec de course + 15 à 30 sec de récup.';
+  if (p[0] === 15  && p[1] === 15) return '15 sec de course + 15 sec de récup.';
+  if (p[0] === 60  && p[1] === 60)  return '1 min de course + 1 min de récup.';
+  if (p[0] === 60  && p[1] === 120) return '1 min de course + 2 min de récup.';
+  if (p[0] === 180 && p[1] === 60)  return '3 min de course + 1 min de récup.';
+  if (p[0] === 180 && p[1] === 120) return '3 min de course + 2 min de récup.';
+  if (p[0] === 300 && p[1] === 60)  return '5 min de course + 1 min de récup.';
+  if (p[0] === 300 && p[1] === 120) return '5 min de course + 2 min de récup.';
+  return '';
+}
+function patternShort(p) {
+  if (!p) return '';
+  if (p[0] === 15 && p[1] === '15 ou 30') return '15s/15–30s';
+  if (p[0] === 15)  return '15s/15s';
+  if (p[0] === 60  && p[1] === 60)  return '1min/1min';
+  if (p[0] === 60  && p[1] === 120) return '1min/2min';
+  if (p[0] === 180 && p[1] === 60)  return '3min/1min';
+  if (p[0] === 180 && p[1] === 120) return '3min/2min';
+  if (p[0] === 300 && p[1] === 60)  return '5min/1min';
+  if (p[0] === 300 && p[1] === 120) return '5min/2min';
+  return '';
+}
+function runSec(p) { return typeof p[0] === 'number' ? p[0] : 15; }
+function recupSec(p) {
+  const v = p[1];
+  if (v === '15 ou 30') return 15;
+  return typeof v === 'number' ? v : 15;
+}
+function secToStr(s) {
+  if (s < 60) return s + ' sec';
+  return (s/60) + ' min';
+}
+
+// ─── SESSION DISPLAY INFO ─────────────────────────────────────────
+function sessionInfo(s) {
+  if (!s) return { title:'Repos', desc:'Récupération', accent:'accent-repos', badge:'', cls:'diff-rest', dur:'' };
+  const e = EFFORT[s.diff] || EFFORT['2-4'];
+  switch(s.type) {
+    case 'repos':
+      return { title:'Repos', desc:'Journée de récupération', accent:'accent-repos', badge:'Repos', cls:'diff-rest', dur:'' };
+    case 'ec':
+      return { title:`Course continue`, desc:`${s.dur} min sans arrêt`, accent: e.accent, badge: e.badge, cls: e.cls, dur:`${s.dur} min` };
+    case 'alterne':
+      return { title:`Intervalles débutant`, desc:`${s.reps}× (${s.run} min course + ${s.walk} min marche)`, accent: e.accent, badge: e.badge, cls: e.cls, dur:`${s.dur} min` };
+    case 'epi':
+      return { title:`Intervalles ${patternShort(s.pattern)}`, desc:`${s.dur} min total — course intense + récup.`, accent: e.accent, badge: e.badge, cls: e.cls, dur:`${s.dur} min` };
+    case 'cross':
+      return { title:`Entraînement croisé`, desc:`${s.dur} min — vélo, natation ou elliptique`, accent:'accent-cross', badge:'Récup active', cls:'diff-easy', dur:`${s.dur} min` };
+    case 'course':
+      return { title:`🏁 COURSE 5 KM !`, desc:`Jour de compétition !`, accent:'accent-race', badge:'Course !', cls:'diff-race', dur:'5 km' };
+  }
+}
+
+// ─── MODAL CONTENT BUILDER ────────────────────────────────────────
+function buildModalContent(s, dayName, weekNum) {
+  if (!s || s.type === 'repos') return `
+    <div class="modal-section">
+      <div class="modal-section-title">Journée de repos</div>
+      <div class="tip-box"><div class="tip-icon">💤</div>
+        <div class="tip-text">Le repos fait partie de l'entraînement. C'est durant les jours de récupération que ton corps s'adapte et devient plus fort. Hydrate-toi, dors bien et prépare-toi pour la prochaine séance !</div>
+      </div>
+    </div>`;
+
+  const e = EFFORT[s.diff] || EFFORT['2-4'];
+  let html = '';
+
+  // ── EFFORT METER ──
+  html += `<div class="modal-section">
+    <div class="modal-section-title">Niveau d'effort</div>
+    <div class="effort-meter">
+      <div class="effort-dots">`;
+  for (let i=1; i<=10; i++) {
+    const lit = i <= e.dots;
+    let c = lit ? (e.dots <= 4 ? '#22C55E' : e.dots <= 6 ? '#EAB308' : '#EF4444') : '#2A3348';
+    html += `<div class="effort-dot" style="${lit ? 'background:'+c : ''}"></div>`;
+  }
+  html += `</div><span class="effort-label" style="color:${e.dots<=4?'#4ADE80':e.dots<=6?'#FCD34D':'#F87171'}">${e.dots}/10</span></div>
+    <div class="effort-desc"><strong>${e.label}</strong> — ${e.desc}</div>
+  </div>`;
+
+  // ── WORKOUT STEPS ──
+  html += `<div class="modal-section"><div class="modal-section-title">Déroulement de la séance</div><ul class="step-list">`;
+
+  if (s.type === 'ec') {
+    html += step(1, `<strong>Échauffement</strong> — Les 3–5 premières minutes : commence par marcher puis passe au trot très léger.`);
+    html += step(2, `<strong>Corps de la séance</strong> — Course continue pendant <strong>${s.dur} min</strong> à un rythme <strong>${e.label.toLowerCase()}</strong>. Si tu dois marcher, c'est correct !`);
+    html += step(3, `<strong>Retour au calme</strong> — Les 2–3 dernières minutes : ralentis progressivement jusqu'à la marche.`);
+    html += step(4, `<strong>Étirements</strong> — 5 min d'étirements légers après la course (mollets, quadriceps, hanches).`);
+  }
+  else if (s.type === 'alterne') {
+    html += step(1, `<strong>Mise en train</strong> — Commence par 2–3 minutes de marche rapide.`);
+    html += step(2, `<strong>Répète ${s.reps} fois :</strong><br>🏃 <strong>${s.run} min</strong> de course à rythme confortable (diff. ${s.diff}/10)<br>🚶 <strong>${s.walk} min</strong> de marche récupération`);
+    html += step(3, `<strong>Retour au calme</strong> — Termine par 2 min de marche tranquille.`);
+    html += step(4, `<strong>Durée totale :</strong> ${s.dur} minutes. Si tu trouves ça trop facile, c'est parfait — tu es au bon niveau !`);
+  }
+  else if (s.type === 'epi') {
+    const runT = runSec(s.pattern);
+    const recT = recupSec(s.pattern);
+    html += step(1, `<strong>Échauffement</strong> — 3–5 min de marche ou trot très léger. Ne saute pas cette étape !`);
+    html += step(2, `<strong>Intervalles</strong> — Alterne : <strong>${secToStr(runT)} de course soutenue</strong> (diff. ${s.diff}/10) + <strong>${secToStr(recT)} de récupération</strong> (marche ou trot lent). Répète jusqu'à la fin du temps alloué.`);
+    html += step(3, `<strong>Retour au calme</strong> — 3–5 min de trot léger ou marche.`);
+    html += step(4, `<strong>Durée totale :</strong> ${s.dur} min (incluant échauffement et retour au calme).`);
+    html += `</ul></div>`;
+
+    // App config box
+    html += `<div class="interval-setup">
+      <div class="interval-setup-title">⚙️ Config pour Interval Timer</div>
+      <div class="interval-config">
+        <div class="interval-config-item"><div class="val">${secToStr(runT)}</div><div class="lbl">Travail</div></div>
+        <div class="interval-config-item"><div class="val">${secToStr(recT)}</div><div class="lbl">Récupération</div></div>
+        <div class="interval-config-item"><div class="val">${s.dur} min</div><div class="lbl">Durée totale</div></div>
+        <div class="interval-config-item"><div class="val">∞</div><div class="lbl">Répétitions auto</div></div>
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:#7B8BAA">💡 App suggérée : <strong>Interval Timer</strong> (Android) ou <strong>Seconds</strong> (iOS)</div>
+    </div>
+    <div class="modal-section" style="margin-top:10px"><div class="modal-section-title">Déroulement</div><ul class="step-list">`;
+  }
+  else if (s.type === 'cross') {
+    html += step(1, `<strong>Choisis ton activité</strong> — Vélo stationnaire, natation ou elliptique. L'important est de bouger sans impact sur les jambes.`);
+    html += step(2, `<strong>Durée</strong> — ${s.dur} minutes à effort <strong>${e.label.toLowerCase()}</strong>. Tu dois pouvoir parler facilement.`);
+    html += step(3, `<strong>Objectif</strong> — Maintenir ta forme cardiovasculaire en laissant tes muscles de course récupérer.`);
+  }
+  else if (s.type === 'course') {
+    html += step(1, `<strong>Échauffement</strong> — 10–15 min avant le départ : marche, trot léger, quelques exercices dynamiques.`);
+    html += step(2, `<strong>Stratégie de course</strong> — Commence plus lentement que tu penses devoir aller. Les 2 premiers km doivent sembler faciles.`);
+    html += step(3, `<strong>Milieu de course</strong> — Km 2 à 4 : maintiens ton rythme. Si tu as de l'énergie, accélère légèrement.`);
+    html += step(4, `<strong>Sprint final</strong> — Km 4 à 5 : donne tout ce qu'il te reste ! Tu mérites ce finish !`);
+    html += step(5, `<strong>Après la course</strong> — Marche 10 min, hydrate-toi, étire-toi. Célèbre ta réussite ! 🎉`);
+  }
+
+  if (s.type !== 'epi') html += `</ul></div>`;
+
+  // ── TIPS ──
+  html += `<div class="modal-section"><div class="modal-section-title">Conseils</div>`;
+  const tips = getSessionTips(s, weekNum);
+  tips.forEach(t => {
+    html += `<div class="tip-box"><div class="tip-icon">${t.icon}</div><div class="tip-text">${t.text}</div></div>`;
+  });
+  html += `</div>`;
+
+  return html;
+}
+
+function step(n, txt) {
+  return `<li class="step-item"><span class="step-num">${n}</span><span class="step-text">${txt}</span></li>`;
+}
+
+function getSessionTips(s, weekNum) {
+  const tips = [];
+  if (!s) return tips;
+
+  if (s.type === 'alterne') {
+    tips.push({ icon:'🐢', text:'La marche n\'est pas une défaite — c\'est une stratégie. Les meilleurs coureurs marchent aussi pendant leurs premières semaines !' });
+    tips.push({ icon:'👃', text:'Si tu peux respirer par le nez, tu vas à la bonne vitesse. C\'est ton meilleur indicateur d\'effort.' });
+    if (weekNum <= 2) tips.push({ icon:'🎯', text:'Objectif de ces premières semaines : habituer ton corps à courir, pas à aller vite. La vitesse vient plus tard.' });
+  }
+  if (s.type === 'ec') {
+    tips.push({ icon:'💬', text:'Test de conversation : si tu ne peux pas tenir une conversation, ralentis. Pas de honte — c\'est la bonne approche !' });
+    if (s.diff >= '6') tips.push({ icon:'🔥', text:'Cette séance est difficile intentionnellement. Donne ton effort, mais reste dans la zone demandée. Le lendemain est plus facile.' });
+    if (s.diff <= '4') tips.push({ icon:'😊', text:'Cette séance de récupération est là pour que ton corps digère le travail des jours précédents. Va vraiment doucement.' });
+  }
+  if (s.type === 'epi') {
+    const runT = runSec(s.pattern);
+    if (runT <= 15) {
+      tips.push({ icon:'⚡', text:'15 secondes semble court, mais va vite ! L\'idée est de stimuler ta vitesse et ta puissance. La récupération est là pour ça.' });
+    } else {
+      tips.push({ icon:'⏱️', text:'Pendant la récupération, ralentis vraiment — marche si nécessaire. Une bonne récupération te permet de donner 100% à l\'intervalle suivant.' });
+    }
+    tips.push({ icon:'📱', text:'Utilise une app de minuterie pour gérer tes intervalles automatiquement — beaucoup moins stressant que de surveiller ta montre !' });
+  }
+  if (s.type === 'course') {
+    tips.push({ icon:'🌙', text:'La nuit avant : couche-toi tôt, bois beaucoup d\'eau, prépare ta tenue. Évite les nouveaux aliments.' });
+    tips.push({ icon:'⏰', text:'Le matin : mange léger 2–3h avant le départ. Une banane et un café si tu as l\'habitude.' });
+    tips.push({ icon:'🎽', text:'Porte exactement la même tenue que tu as portée à l\'entraînement. Pas de surprise le jour J !' });
+    tips.push({ icon:'🏆', text:'Tu as fait 15 semaines de travail pour arriver ici. Peu importe ton temps — finir est ta victoire !' });
+  }
+
+  // Universal tips
+  tips.push({ icon:'💧', text:'Hydrate-toi bien avant, pendant (si > 30 min) et après ta séance. La déshydratation est la cause no 1 de mauvaises performances.' });
+
+  return tips.slice(0, 3); // max 3 tips per session
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// UI STATE & RENDERING
+// ═══════════════════════════════════════════════════════════════════
+let currentWeek = 1;
+
+function getPhaseForWeek(w) {
+  return PHASES.find(p => p.weeks.includes(w)) || PHASES[0];
+}
+
+function renderWeekDots() {
+  const c = document.getElementById('weekDots');
+  c.innerHTML = '';
+  PHASES.forEach(phase => {
+    phase.weeks.forEach(w => {
+      const btn = document.createElement('button');
+      btn.className = 'week-dot' + (w === currentWeek ? ' active' : '');
+      btn.textContent = w;
+      btn.style.background = w === currentWeek ? phase.color : '';
+      btn.onclick = () => { currentWeek = w; render(); };
+      c.appendChild(btn);
+    });
+  });
+  // Scroll active dot into view
+  const active = c.querySelector('.active');
+  if (active) active.scrollIntoView({ block:'nearest', inline:'center', behavior:'smooth' });
+}
+
+function render() {
+  const phase = getPhaseForWeek(currentWeek);
+  const sessions = WEEKS[currentWeek];
+
+  // Phase banner
+  const banner = document.getElementById('phaseBanner');
+  banner.style.background = phase.color + '22';
+  banner.style.border = `1px solid ${phase.color}44`;
+  document.getElementById('phaseText').textContent = phase.name.toUpperCase();
+  banner.querySelector('.phase-dot').style.background = phase.color;
+
+  // Week nav
+  document.getElementById('weekLabel').textContent = `Semaine ${currentWeek}`;
+  document.getElementById('weekSub').textContent = phase.name + ' · ' + phase.weeks.length + ' semaines';
+  document.getElementById('btnPrev').disabled = currentWeek === 1;
+  document.getElementById('btnNext').disabled = currentWeek === 18;
+  document.getElementById('progressFill').style.width = (currentWeek/18*100) + '%';
+  document.getElementById('progressText').textContent = currentWeek + ' / 18';
+
+  // Week dots
+  renderWeekDots();
+
+  // Check if race week
+  const isRaceWeek = currentWeek === 16;
+  const hasRace = sessions && sessions.some(s => s && s.type === 'course');
+
+  // Main content
+  const content = document.getElementById('mainContent');
+  let html = '';
+
+  if (isRaceWeek || hasRace) {
+    html += `<div style="padding:16px 20px 0">
+      <div style="background:linear-gradient(135deg,rgba(249,115,22,0.1),rgba(239,68,68,0.1));border:1px solid rgba(249,115,22,0.3);border-radius:14px;padding:14px 16px;text-align:center">
+        <div style="font-size:28px;margin-bottom:6px">🏁</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:#F97316">SEMAINE DE COURSE !</div>
+        <div style="font-size:12px;color:#7B8BAA;margin-top:4px">Tu cours ton premier 5 km cette semaine. 15 semaines de travail pour ce moment !</div>
+      </div>
+    </div>`;
+  }
+
+  html += `<div class="days-grid">`;
+
+  DAYS.forEach((dayName, i) => {
+    const s = sessions ? sessions[i] : null;
+    const info = sessionInfo(s);
+    const isRest = !s || s.type === 'repos';
+    const isRaceDay = s && s.type === 'course';
+
+    if (isRaceDay) {
+      html += `<div class="day-card" onclick="openModal(${i})" style="border-color:rgba(249,115,22,0.4);background:linear-gradient(135deg,rgba(249,115,22,0.1),rgba(239,68,68,0.08))">
+        <div class="day-card-accent accent-race"></div>
+        <div class="day-card-body">
+          <div class="day-name-col"><div class="day-name">${dayName}</div></div>
+          <div class="day-info">
+            <div class="day-title" style="color:#F97316">${info.title}</div>
+            <div class="day-desc">${info.desc}</div>
+          </div>
+          <div class="day-right">
+            <span class="diff-badge diff-race">Course !</span>
+            <span class="duration-badge">5 km</span>
+          </div>
+        </div>
+      </div>`;
+    } else {
+      html += `<div class="day-card${isRest?' repos':''}" ${!isRest?`onclick="openModal(${i})"`:''}">
+        <div class="day-card-accent ${info.accent}"></div>
+        <div class="day-card-body">
+          <div class="day-name-col"><div class="day-name">${dayName}</div></div>
+          <div class="day-info">
+            <div class="day-title">${info.title}</div>
+            ${info.desc ? `<div class="day-desc">${info.desc}</div>` : ''}
+          </div>
+          <div class="day-right">
+            <span class="diff-badge ${info.cls}">${info.badge || ''}</span>
+            ${info.dur ? `<span class="duration-badge">${info.dur}</span>` : ''}
+            ${!isRest ? `<span class="chevron">›</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }
+  });
+
+  html += `</div>`;
+  content.innerHTML = html;
+}
+
+function changeWeek(delta) {
+  const n = currentWeek + delta;
+  if (n >= 1 && n <= 18) { currentWeek = n; render(); }
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────
+function openModal(dayIdx) {
+  const s = WEEKS[currentWeek] ? WEEKS[currentWeek][dayIdx] : null;
+  if (!s || s.type === 'repos') return;
+  const dayName = DAYS[dayIdx];
+  const info = sessionInfo(s);
+  const phase = getPhaseForWeek(currentWeek);
+
+  document.getElementById('modalDayTag').textContent = `SEMAINE ${currentWeek} · ${dayName.toUpperCase()}`;
+  document.getElementById('modalTitle').textContent = info.title;
+  document.getElementById('modalBody').innerHTML = buildModalContent(s, dayName, currentWeek);
+
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('modalSheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.getElementById('modalSheet').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ─── TOOLS TOGGLE ─────────────────────────────────────────────────
+let toolsVisible = false;
+function toggleTools() {
+  toolsVisible = !toolsVisible;
+  const panel = document.getElementById('toolsPanel');
+  panel.style.display = toolsVisible ? 'block' : 'none';
+  if (toolsVisible) panel.scrollIntoView({ behavior:'smooth' });
+}
+
+// ─── PRINT ────────────────────────────────────────────────────────
+function printWeek() {
+  const phase = getPhaseForWeek(currentWeek);
+  const sessions = WEEKS[currentWeek] || [];
+
+  let tableRows = DAYS.map((d, i) => {
+    const s = sessions[i];
+    const info = sessionInfo(s);
+    const diff = s && s.diff ? `Diff. ${s.diff}/10` : '';
+    return `<tr><td style="font-weight:700;width:90px;padding:6px 8px;border:1px solid #ddd">${d}</td>
+      <td style="padding:6px 8px;border:1px solid #ddd">${info.title}</td>
+      <td style="padding:6px 8px;border:1px solid #ddd;color:#666">${info.desc}</td>
+      <td style="padding:6px 8px;border:1px solid #ddd;text-align:center">${info.dur || '—'}</td>
+      <td style="padding:6px 8px;border:1px solid #ddd;text-align:center">${diff}</td></tr>`;
+  }).join('');
+
+  const printWin = window.open('', '_blank');
+  printWin.document.write(`<!DOCTYPE html><html><head><title>Semaine ${currentWeek} — Mon Premier 5 km</title>
+  <style>body{font-family:Arial,sans-serif;padding:20px;color:#000}table{border-collapse:collapse;width:100%}
+  th{background:#f5f5f5;padding:8px;border:1px solid #ddd;text-align:left}
+  @media print{body{padding:10px}}</style></head><body>
+  <h2 style="margin:0 0 4px">Programme No 10 — Mon Premier 5 km</h2>
+  <p style="color:#666;margin:0 0 12px">${phase.name} · Semaine ${currentWeek} sur 18</p>
+  <table><thead><tr><th>Jour</th><th>Séance</th><th>Détail</th><th>Durée</th><th>Effort</th></tr></thead>
+  <tbody>${tableRows}</tbody></table>
+  <p style="margin-top:16px;font-size:11px;color:#999">Créé par Kevin Tremblay · © 2026 · lacliniqueducoureur.com</p>
+  <script>window.onload=()=>{window.print();window.close();}<\/script></body></html>`);
+  printWin.document.close();
+}
+
+function printFull() {
+  let phaseBlocks = '';
+
+  PHASES.forEach(phase => {
+    let weekBlocks = '';
+    phase.weeks.forEach(w => {
+      const sessions = WEEKS[w] || [];
+      let rows = DAYS.map((d, i) => {
+        const s = sessions[i];
+        const info = sessionInfo(s);
+        const diff = s && s.diff ? `Diff. ${s.diff}/10` : '';
+        return `<tr><td style="padding:3px 6px;border:1px solid #e0e0e0;font-weight:600;font-size:10px;width:70px">${d}</td>
+          <td style="padding:3px 6px;border:1px solid #e0e0e0;font-size:10px">${info.title}</td>
+          <td style="padding:3px 6px;border:1px solid #e0e0e0;font-size:10px;color:#555">${info.desc}</td>
+          <td style="padding:3px 6px;border:1px solid #e0e0e0;font-size:10px;text-align:center">${info.dur || '—'}</td></tr>`;
+      }).join('');
+      weekBlocks += `<div style="margin-bottom:12px;page-break-inside:avoid">
+        <div style="background:#f5f5f5;padding:4px 8px;font-weight:700;font-size:11px;border-left:3px solid ${phase.color}">SEMAINE ${w}</div>
+        <table style="width:100%;border-collapse:collapse">${rows}</table></div>`;
+    });
+
+    phaseBlocks += `<div style="margin-bottom:20px;page-break-inside:avoid">
+      <h3 style="background:${phase.color};color:white;padding:6px 10px;margin:0 0 8px;font-size:13px;border-radius:4px">${phase.name.toUpperCase()}</h3>
+      ${weekBlocks}</div>`;
+  });
+
+  const printWin = window.open('', '_blank');
+  printWin.document.write(`<!DOCTYPE html><html><head><title>Programme Complet — Mon Premier 5 km</title>
+  <style>body{font-family:Arial,sans-serif;padding:16px;color:#000;font-size:11px}
+  @media print{body{padding:8px}h1{font-size:16px}}</style></head><body>
+  <h1 style="margin:0 0 2px;font-size:20px">Programme No 10 — Mon Premier 5 km</h1>
+  <p style="color:#666;margin:0 0 16px;font-size:12px">La Clinique du Coureur · 18 semaines · Débutant</p>
+  ${phaseBlocks}
+  <p style="margin-top:16px;font-size:10px;color:#999;border-top:1px solid #eee;padding-top:8px">Créé par Kevin Tremblay · © 2026 · lacliniqueducoureur.com</p>
+  <script>window.onload=()=>{window.print();window.close();}<\/script></body></html>`);
+  printWin.document.close();
+}
+
+// ─── KEYBOARD NAV ─────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (document.getElementById('modalSheet').classList.contains('open')) {
+    if (e.key === 'Escape') closeModal();
+    return;
+  }
+  if (e.key === 'ArrowLeft')  changeWeek(-1);
+  if (e.key === 'ArrowRight') changeWeek(1);
+});
+
+// ─── SWIPE SUPPORT ────────────────────────────────────────────────
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive:true });
+document.addEventListener('touchend', e => {
+  if (document.getElementById('modalSheet').classList.contains('open')) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 60) changeWeek(dx < 0 ? 1 : -1);
+}, { passive:true });
+
+// ─── INIT ─────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
