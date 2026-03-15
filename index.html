@@ -346,6 +346,42 @@ select.inp{cursor:pointer}
 .t-btn.close{background:var(--orange);color:white;padding:13px 40px}
 .t-name{font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:18px}
 
+/* ══ UPDATE BANNER ══════════════════════════════ */
+.update-banner{position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,var(--orange),#e05d0a);color:white;padding:10px 16px;z-index:1000;display:none;align-items:center;justify-content:space-between;gap:10px;font-size:13px;font-weight:600;box-shadow:0 2px 12px rgba(249,115,22,.4)}
+.update-banner.vis{display:flex}
+.update-banner-btns{display:flex;gap:8px;flex-shrink:0}
+.upd-btn{padding:5px 12px;border-radius:6px;border:none;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
+.upd-btn.ok{background:white;color:var(--orange)}
+.upd-btn.skip{background:rgba(255,255,255,.2);color:white}
+
+/* ══ IOS INSTALL BANNER ════════════════════════ */
+.ios-banner{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:14px 16px 28px;z-index:700;box-shadow:0 -4px 20px rgba(0,0,0,.15);transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.ios-banner.vis{transform:translateY(0)}
+.ios-banner-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ios-banner-title{font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;color:var(--text)}
+.ios-banner-close{background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;padding:2px 6px;line-height:1}
+.ios-steps{display:flex;flex-direction:column;gap:8px}
+.ios-step{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text);line-height:1.4}
+.ios-step-num{width:22px;height:22px;border-radius:50%;background:var(--orange);color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ios-step em{font-style:normal;font-weight:700;color:var(--orange)}
+.day-card.dragging{opacity:.35;transform:scale(.97);transition:none}
+.day-card.drag-over{outline:2px dashed var(--orange);outline-offset:-2px;background:rgba(249,115,22,.08)}
+.drag-ghost{position:fixed;pointer-events:none;z-index:9000;background:var(--surface);border:2px solid var(--orange);border-radius:var(--r);padding:9px 14px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none}
+.drag-ghost.vis{display:block}
+
+/* ══ CONFLICT MODAL ═════════════════════════════ */
+.conflict-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:800;display:none;align-items:center;justify-content:center;padding:24px}
+.conflict-overlay.vis{display:flex}
+.conflict-box{background:var(--surface);border-radius:var(--r);padding:20px;max-width:360px;width:100%;box-shadow:0 16px 40px rgba(0,0,0,.3)}
+.conflict-title{font-family:'Oswald',sans-serif;font-size:19px;font-weight:700;color:var(--text);margin-bottom:6px}
+.conflict-desc{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px}
+.conflict-btns{display:flex;flex-direction:column;gap:8px}
+
+/* ══ UNDO TOAST ════════════════════════════════ */
+.undo-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1E293B;color:white;padding:10px 8px 10px 16px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;display:none;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.35);max-width:calc(100vw - 32px)}
+.undo-toast.vis{display:flex}
+.undo-btn-inline{background:var(--orange);color:white;border:none;border-radius:6px;padding:6px 12px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+
 /* ══ CONFETTI ════════════════════════════════════ */
 .confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:999}
 
@@ -359,6 +395,11 @@ select.inp{cursor:pointer}
 
 @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 .days-grid{animation:fadeIn .2s ease}
+
+@keyframes slideInRight{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideInLeft{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:translateX(0)}}
+.days-grid.slide-right{animation:slideInRight .22s cubic-bezier(.25,.46,.45,.94)}
+.days-grid.slide-left{animation:slideInLeft .22s cubic-bezier(.25,.46,.45,.94)}
 </style>
 </head>
 <body>
@@ -368,29 +409,32 @@ select.inp{cursor:pointer}
   <div class="panel">
     <div class="panel-logo">🏃</div>
     <h1 class="ptitle">Mon Premier <span>5/10 km</span></h1>
-    <p class="psub">Programme La Clinique du Coureur</p>
+    <p class="psub">Basé sur les programmes de la Clinique du Coureur</p>
     <div class="tabs">
-      <button class="tab on" id="tReg" onclick="switchTab('r')">Nouveau compte</button>
-      <button class="tab" id="tLog" onclick="switchTab('l')">Se connecter</button>
+      <button class="tab" id="tReg" onclick="switchTab('r')">Nouveau compte</button>
+      <button class="tab on" id="tLog" onclick="switchTab('l')">Se connecter</button>
     </div>
-    <div id="regPanel">
-      <input type="text" id="rPseudo" class="inp" placeholder="Ton prénom ou surnom" maxlength="20" autocomplete="username">
+    <div id="regPanel" style="display:none">
+      <input type="text" id="rPseudo" name="username" class="inp" placeholder="Ton prénom ou surnom" maxlength="20" autocomplete="username">
       <div class="pin-wrap">
-        <input type="tel" id="rPin" class="inp" placeholder="NIP à 4 chiffres" maxlength="4" inputmode="numeric" pattern="[0-9]{4}">
+        <input type="password" id="rPin" name="password" class="inp" placeholder="NIP à 4 chiffres" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" autocomplete="new-password">
         <span class="pin-info" tabindex="0">ℹ️</span>
         <div class="tip-pop">⚠️ <strong>N'utilisez pas un NIP confidentiel</strong> (banque, téléphone…). Cette app utilise une base de données non sécurisée conçue pour un usage entre amis.</div>
       </div>
       <div class="err" id="rErr"></div>
       <button class="btn primary" onclick="doRegister()">Créer mon compte →</button>
     </div>
-    <div id="logPanel" style="display:none">
-      <input type="text" id="lPseudo" class="inp" placeholder="Ton prénom ou surnom" autocomplete="username">
+    <div id="logPanel">
+      <input type="text" id="lPseudo" name="username" class="inp" placeholder="Ton prénom ou surnom" autocomplete="username">
       <div class="pin-wrap">
-        <input type="tel" id="lPin" class="inp" placeholder="NIP à 4 chiffres" maxlength="4" inputmode="numeric" pattern="[0-9]{4}">
+        <input type="password" id="lPin" name="password" class="inp" placeholder="NIP à 4 chiffres" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" autocomplete="current-password">
         <span class="pin-info" tabindex="0">ℹ️</span>
         <div class="tip-pop">⚠️ <strong>N'utilisez pas un NIP confidentiel.</strong> Base de données non sécurisée.</div>
       </div>
       <div class="err" id="lErr"></div>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:13px;color:var(--muted)">
+        <input type="checkbox" id="stayLoggedIn" checked style="accent-color:var(--orange)"> Rester connecté
+      </label>
       <button class="btn primary" onclick="doLogin()">Se connecter →</button>
     </div>
     <div id="authLoad" class="loader" style="display:none"><div class="spin"></div><span>Connexion…</span></div>
@@ -485,6 +529,16 @@ select.inp{cursor:pointer}
     <div class="settings-sec">
       <div class="sec-title">Affichage</div>
       <div class="set-group">
+        <div class="set-row" id="pwaInstallRow" style="display:none">
+          <div class="set-icon">📱</div>
+          <div class="set-info"><div class="set-title">Ajouter à l'écran d'accueil</div><div class="set-desc">Accès rapide depuis ton téléphone</div></div>
+          <button class="set-btn" onclick="triggerInstall()">Installer</button>
+        </div>
+        <div class="set-row" id="iosInstallRow" style="display:none">
+          <div class="set-icon">📱</div>
+          <div class="set-info"><div class="set-title">Ajouter à l'écran d'accueil</div><div class="set-desc">Instructions pour iPhone / iPad</div></div>
+          <button class="set-btn" onclick="showIosBanner()">Comment faire ?</button>
+        </div>
         <div class="set-row">
           <div class="set-icon">🌙</div>
           <div class="set-info"><div class="set-title">Thème sombre</div><div class="set-desc">Fond foncé, idéal en soirée</div></div>
@@ -528,9 +582,8 @@ select.inp{cursor:pointer}
         </a>
       </div>
       <div class="footer-s">
-        <div class="f-by">La Clinique du Coureur</div>
-        <div class="f-copy">Créé par <strong>Kevin Tremblay</strong> &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp;
-          <a href="https://lacliniqueducoureur.com" target="_blank">lacliniqueducoureur.com</a></div>
+        <div class="f-by">Basé sur les programmes de la Clinique du Coureur</div>
+        <div class="f-copy">Créé par <strong>Kevin Tremblay</strong> &nbsp;·&nbsp; © 2026</div>
       </div>
     </div>
   </div>
@@ -612,6 +665,46 @@ select.inp{cursor:pointer}
     <button class="t-btn close" onclick="stopTimer()">Fermer</button>
   </div>
 </div>
+
+<!-- Update banner -->
+<div class="update-banner" id="updateBanner">
+  <span>🆕 Nouvelle version disponible !</span>
+  <div class="update-banner-btns">
+    <button class="upd-btn ok" onclick="applyUpdate()">Mettre à jour</button>
+    <button class="upd-btn skip" onclick="dismissUpdate()">Plus tard</button>
+  </div>
+</div>
+
+<!-- iOS PWA install banner -->
+<div class="ios-banner" id="iosBanner">
+  <div class="ios-banner-hdr">
+    <div class="ios-banner-title">📱 Ajouter à l'écran d'accueil</div>
+    <button class="ios-banner-close" onclick="closeIosBanner()">✕</button>
+  </div>
+  <div class="ios-steps">
+    <div class="ios-step"><div class="ios-step-num">1</div><span>Appuie sur <em>Partager</em> <em>⬆️</em> en bas de Safari</span></div>
+    <div class="ios-step"><div class="ios-step-num">2</div><span>Fais défiler et choisis <em>« Sur l'écran d'accueil »</em></span></div>
+    <div class="ios-step"><div class="ios-step-num">3</div><span>Appuie sur <em>Ajouter</em> — l'app apparaîtra sur ton écran !</span></div>
+  </div>
+</div>
+
+<!-- Conflict modal -->
+<div class="conflict-overlay" id="conflictOverlay">
+  <div class="conflict-box">
+    <div class="conflict-title" id="conflictTitle">Conflit de séance</div>
+    <div class="conflict-desc" id="conflictDesc"></div>
+    <div class="conflict-btns" id="conflictBtns"></div>
+  </div>
+</div>
+
+<!-- Undo toast -->
+<div class="undo-toast" id="undoToast">
+  <span id="undoMsg">Action effectuée</span>
+  <button class="undo-btn-inline" onclick="doUndo()">↩ Annuler</button>
+</div>
+
+<!-- Drag ghost -->
+<div class="drag-ghost" id="dragGhost"></div>
 
 <canvas class="confetti-canvas" id="confettiCanvas"></canvas>
 <canvas id="shareCanvas" width="800" height="400" style="display:none"></canvas>
@@ -712,7 +805,7 @@ function sInfo(s){
   const e=EFF[s.eff]||EFF['2-4'];
   switch(s.type){
     case 'ec':return{title:'Course continue',desc:`${s.dur} min sans arrêt`,ac:e.ac,cls:e.cls,badge:e.l,dur:`${s.dur} min`,timer:false};
-    case 'al':return{title:'Intervalles débutant',desc:`${s.reps}× (${s.run}min+${s.walk}min marche)`,ac:e.ac,cls:e.cls,badge:e.l,dur:`${s.dur} min`,timer:true};
+    case 'al':return{title:'Intervalles faciles',desc:`${s.reps}× (${s.run}min+${s.walk}min marche)`,ac:e.ac,cls:e.cls,badge:e.l,dur:`${s.dur} min`,timer:true};
     case 'ep':{const ws=s.ws<60?s.ws+'s':(s.ws/60)+'min';const rs=s.rs<60?s.rs+'s':(s.rs/60)+'min';
       return{title:`Intervalles ${ws}/${rs}`,desc:`${s.dur} min — course rapide + récup`,ac:e.ac,cls:e.cls,badge:e.l,dur:`${s.dur} min`,timer:true};}
     case 'cr':return{title:'Entraînement croisé',desc:`${s.dur} min — vélo, natation ou elliptique`,ac:'at',cls:'de',badge:'Récup active',dur:`${s.dur} min`,timer:false};
@@ -734,11 +827,16 @@ function sPrio(s){
 function phaseOf(prog,w){return PHASES_MAP[prog]?.find(p=>p.weeks.includes(w))||PHASES_MAP[prog]?.[0];}
 function secStr(s){return`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}
 
-// ─── GET SCHEDULE ───────────────────────────────────────────
-// Applies prefDays AND reschedules stored in sessions
+// ─── SCHEDULE CACHE ──────────────────────────────────────────
+// Invalidé à chaque saveL() ou changement d'auth
+let _schedCache={};
+function invalidateSchedCache(){_schedCache={};}
 function getSchedule(prog,week,prefDays,dpw){
+  const key=`${prog}_${week}_${JSON.stringify(prefDays)}_${dpw}_${JSON.stringify(
+    Object.fromEntries(Object.entries(sessions).filter(([k])=>k.startsWith(`w${week}d`)))
+  )}`;
+  if(_schedCache[key])return _schedCache[key];
   const all=PROGS[prog]?.[week]||Array(7).fill(R());
-  // Base layout (respects prefDays)
   let base;
   if(!prefDays||!prefDays.length){
     base=all.map((s,i)=>({s,req:s.type!=='r',di:i,optional:false,movedFrom:null,movedTo:null}));
@@ -751,23 +849,19 @@ function getSchedule(prog,week,prefDays,dpw){
     selected.forEach((item,idx)=>{const day=sorted[idx];if(day!==undefined)base[day]={s:item.s,req:true,di:day,optional:false,movedFrom:null,movedTo:null};});
     skipped.forEach(item=>{const day=item.i;if(!base[day].req)base[day]={s:item.s,req:false,di:day,optional:true,movedFrom:null,movedTo:null};});
   }
-
-  // Apply reschedules: sessions[sk(w,origDay)].movedTo = newDay
   for(let d=0;d<7;d++){
     const sess=gs(week,d);
     if(sess?.movedTo!==undefined&&sess.movedTo!==null&&sess.movedTo!==d){
-      const orig=base[d];
-      const dest=sess.movedTo;
+      const orig=base[d];const dest=sess.movedTo;
       if(orig.s.type!=='r'){
-        // Mark origin as moved away
         base[d]={s:R(),req:false,di:d,optional:false,movedFrom:null,movedTo:null,movedAway:true,origSession:orig.s};
-        // Place on destination (if not already occupied by a real session)
         if(base[dest]&&(base[dest].s.type==='r'||!base[dest].req)){
           base[dest]={s:orig.s,req:true,di:dest,optional:false,movedFrom:d,movedTo:null};
         }
       }
     }
   }
+  _schedCache[key]=base;
   return base;
 }
 
@@ -787,21 +881,42 @@ function loadL(){
   try{sessions=JSON.parse(localStorage.getItem(K.S)||'{}');}catch(e){sessions={};}
   try{pending=JSON.parse(localStorage.getItem(K.P)||'[]');}catch(e){pending=[];}
 }
-function saveL(){localStorage.setItem(K.S,JSON.stringify(sessions));localStorage.setItem(K.P,JSON.stringify(pending));}
-function saveA(){localStorage.setItem(K.A,JSON.stringify(auth));}
+function saveL(){
+  // Purge entrées vides pour alléger le localStorage
+  Object.keys(sessions).forEach(k=>{
+    const s=sessions[k];
+    if(!s||(!s.completed&&!s.note&&!s.feeling&&!s.comment&&s.movedTo==null&&s.movedTo!==0))delete sessions[k];
+  });
+  // Cap pending à 200 entrées max
+  if(pending.length>200)pending=pending.slice(-200);
+  invalidateSchedCache();
+  localStorage.setItem(K.S,JSON.stringify(sessions));
+  localStorage.setItem(K.P,JSON.stringify(pending));
+}
+function saveA(){localStorage.setItem(K.A,JSON.stringify(auth));invalidateSchedCache();}
 function sk(w,d){return`w${w}d${d}`;}
 function gs(w,d){return sessions[sk(w,d)]||null;}
-function wDone(prog,w){return(PROGS[prog]?.[w]||[]).filter((s,i)=>s.type!=='r'&&s.type!=='co'&&gs(w,i)?.completed).length;}
+function wDone(prog,w){
+  // Use getSchedule so moved sessions are counted at their effective day
+  const pref=auth?.preferredDays||[];const dpw=auth?.daysPerWeek||5;
+  const sched=getSchedule(prog,w,pref,dpw);
+  return sched.filter((item,i)=>item.s.type!=='r'&&item.s.type!=='co'&&!item.movedAway&&gs(w,i)?.completed).length;
+}
 function wTotal(prog,w){return(PROGS[prog]?.[w]||[]).filter(s=>s.type!=='r'&&s.type!=='co').length;}
 
 function computeStats(){
   const prog=auth?.program||'5km';
+  const pref=auth?.preferredDays||[];const dpw=auth?.daysPerWeek||5;
   let done=0,total=0,estKm=0;
-  for(let w=1;w<=18;w++){(PROGS[prog]?.[w]||[]).forEach((s,i)=>{
-    if(s.type==='r'||s.type==='co')return;
-    total++;
-    if(gs(w,i)?.completed){done++;estKm+=Math.round((s.dur||0)/6*10)/10;}
-  });}
+  for(let w=1;w<=18;w++){
+    const sched=getSchedule(prog,w,pref,dpw);
+    sched.forEach((item,i)=>{
+      if(item.s.type==='r'||item.s.type==='co')return;
+      if(item.movedAway)return; // ne pas double-compter
+      total++;
+      if(gs(w,i)?.completed){done++;estKm+=Math.round((item.s.dur||0)/6*10)/10;}
+    });
+  }
   let streak=0;const cw=calcCW()||1;
   for(let w=cw;w>=1;w--){if(wDone(prog,w)>0)streak++;else break;}
   return{done,total,estKm:Math.round(estKm*10)/10,streak};
@@ -810,10 +925,18 @@ function computeStats(){
 // ═══════════════════════════════════════════════════
 // API / SYNC
 // ═══════════════════════════════════════════════════
-async function api(payload){
-  try{const fd=new FormData();fd.append('data',JSON.stringify(payload));
-    const r=await fetch(SCRIPT_URL,{method:'POST',body:fd});return await r.json();
-  }catch(e){return{ok:false,error:'Hors ligne'};}
+async function api(payload,timeoutMs=10000){
+  try{
+    const ctrl=new AbortController();
+    const tid=setTimeout(()=>ctrl.abort(),timeoutMs);
+    const fd=new FormData();fd.append('data',JSON.stringify(payload));
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:fd,signal:ctrl.signal});
+    clearTimeout(tid);
+    return await r.json();
+  }catch(e){
+    if(e.name==='AbortError')return{ok:false,error:'Délai dépassé — vérifie ta connexion.'};
+    return{ok:false,error:'Hors ligne'};
+  }
 }
 function setSyncDot(s){const d=document.getElementById('syncDot');if(!d)return;d.className='sync-dot'+(s==='s'?' s':s==='e'?' e':'');}
 async function syncPending(){
@@ -831,7 +954,17 @@ async function fetchData(){
   if(!auth||!navigator.onLine)return;
   const r=await api({action:'get_data',userId:auth.userId,token:auth.token});
   if(!r.ok)return;
-  if(r.sessions)r.sessions.forEach(s=>{const k=sk(s.week,s.day);if(!sessions[k])sessions[k]={};Object.assign(sessions[k],s);});
+  // Merge sessions — only overwrite if remote timestamp is newer
+  if(r.sessions)r.sessions.forEach(s=>{
+    const k=sk(s.week,s.day);
+    const local=sessions[k];
+    const remoteTs=s.timestamp?new Date(s.timestamp).getTime():0;
+    const localTs=local?.timestamp?new Date(local.timestamp).getTime():0;
+    if(!local||remoteTs>=localTs){
+      if(!sessions[k])sessions[k]={};
+      Object.assign(sessions[k],s);
+    }
+  });
   if(r.startDate&&!auth.startDate){auth.startDate=r.startDate;saveA();}
   if(r.program&&!auth.program){auth.program=r.program;auth.daysPerWeek=r.daysPerWeek||5;auth.preferredDays=r.preferredDays||[];saveA();}
   saveL();
@@ -846,6 +979,8 @@ function switchTab(t){
   document.getElementById('tReg').className='tab'+(t==='r'?' on':'');
   document.getElementById('tLog').className='tab'+(t==='l'?' on':'');
 }
+// default: show login tab on load
+switchTab('l');
 function show(id){const e=document.getElementById(id);if(e)e.style.display='';}
 function hide(id){const e=document.getElementById(id);if(e)e.style.display='none';}
 function toast(msg,dur=2500){
@@ -902,8 +1037,8 @@ function renderWiz(){
 function wizProg(){return`<h2 class="ptitle" style="font-size:20px;margin-bottom:8px">Quel est ton objectif ?</h2>
 <p class="psub" style="margin-bottom:14px">Tu pourras changer de programme à tout moment dans ton profil.</p>
 <div class="prog-cards">
-<div class="prog-card ${wizData.program==='5km'?'sel':''}" onclick="selP('5km')"><div class="pc-em">🎯</div><div class="pc-t">5 km</div><div class="pc-s">18 sem. · No 10 · Grands débutants</div></div>
-<div class="prog-card ${wizData.program==='10km'?'sel':''}" onclick="selP('10km')"><div class="pc-em">🏅</div><div class="pc-t">10 km</div><div class="pc-s">18 sem. · No 8 · Forme de base requise</div></div>
+<div class="prog-card ${wizData.program==='5km'?'sel':''}" onclick="selP('5km')"><div class="pc-em">🎯</div><div class="pc-t">5 km</div><div class="pc-s">18 sem. · Idéal pour débuter</div></div>
+<div class="prog-card ${wizData.program==='10km'?'sel':''}" onclick="selP('10km')"><div class="pc-em">🏅</div><div class="pc-t">10 km</div><div class="pc-s">18 sem. · Forme de base requise</div></div>
 </div><div class="wiz-nav"><button class="btn primary" onclick="wizN()">Continuer →</button></div>`;}
 function selP(p){wizData.program=p;document.querySelectorAll('.prog-card').forEach(c=>c.classList.toggle('sel',c.onclick.toString().includes("'"+p+"'")));}
 function wizDPW(){const opts=[
@@ -967,6 +1102,11 @@ function calcCW(){
   const diff=Math.floor((new Date()-new Date(auth.startDate))/(7*86400000));
   return Math.min(Math.max(diff+1,1),18);
 }
+function isProgramDone(){
+  if(!auth?.startDate)return false;
+  const diff=Math.floor((new Date()-new Date(auth.startDate))/(7*86400000));
+  return diff+1>18;
+}
 function launchApp(){
   hide('authScr');hide('onboardScr');
   show('app');document.getElementById('botNav').style.display='flex';
@@ -981,10 +1121,22 @@ function updateHeaderUI(){
   const prog=auth?.program||'5km';
   document.getElementById('uAv').textContent=(auth?.pseudo||'?')[0].toUpperCase();
   document.getElementById('uName').textContent=auth?.pseudo||'';
-  document.getElementById('hProg').textContent=`Programme No ${prog==='5km'?'10':'8'}`;
+  document.getElementById('hProg').textContent=`Programme`;
   document.getElementById('hKm').textContent=prog;
 }
-function renderAll(){renderDash();renderProg();renderStats();renderSettings();}
+function renderAll(){
+  // Re-rend seulement l'écran actif immédiatement; les autres seront rafraîchis à la demande
+  switch(activeScreen){
+    case 0:renderDash();break;
+    case 1:renderProg();break;
+    case 2:renderStats();break;
+    case 3:renderSettings();break;
+  }
+  // Marque les autres écrans comme « sales » pour forcer le prochain rendu
+  _dirtyScreens=new Set([0,1,2,3]);
+  _dirtyScreens.delete(activeScreen);
+}
+let _dirtyScreens=new Set();
 
 // ═══════════════════════════════════════════════════
 // SCREEN NAV
@@ -995,7 +1147,11 @@ function goScreen(n){
     document.getElementById(`scr${i}`)?.classList.toggle('on',i===n);
     document.getElementById(`bnt${i}`)?.classList.toggle('on',i===n);
   }
-  switch(n){case 0:renderDash();break;case 1:renderProg();break;case 2:renderStats();break;case 3:renderSettings();break;}
+  // Render si sale ou forcé
+  if(_dirtyScreens.has(n)||true){
+    switch(n){case 0:renderDash();break;case 1:renderProg();break;case 2:renderStats();break;case 3:renderSettings();break;}
+    _dirtyScreens.delete(n);
+  }
   window.scrollTo(0,0);
 }
 
@@ -1007,13 +1163,29 @@ function renderDash(){
   const cw=calcCW()||1;
   const hour=new Date().getHours();
   document.getElementById('dashGreeting').textContent=`${hour<12?'Bonjour':hour<17?'Bon après-midi':'Bonsoir'}, ${auth?.pseudo||''} !`;
-  document.getElementById('dashSub').textContent=`Semaine ${cw}/18 · Programme ${prog.toUpperCase()}`;
+  document.getElementById('dashSub').textContent=isProgramDone()?`🏁 Programme ${prog.toUpperCase()} terminé — Félicitations !`:`Semaine ${cw}/18 · Programme ${prog.toUpperCase()}`;
+
+  // Nudge si pas de date de début
+  const nc=document.getElementById('nextCard');
+  if(!auth?.startDate){
+    nc.innerHTML=`<div class="next-card" style="background:linear-gradient(135deg,rgba(234,179,8,.1),rgba(249,115,22,.06));border-color:rgba(234,179,8,.35)">
+      <div class="next-lbl" style="color:#92700a">DATE DE DÉBUT MANQUANTE</div>
+      <div class="next-title">Configure ta date de départ</div>
+      <div class="next-desc">Sans date de début, l'app ne peut pas suivre ta progression semaine par semaine.</div>
+      <div class="next-meta" style="margin-top:12px">
+        <button class="next-btn" style="background:var(--yellow);color:#000" onclick="openProfile()">Configurer →</button>
+      </div>
+    </div>`;
+    document.getElementById('weekSummary').innerHTML='';
+    document.getElementById('recentList').innerHTML='';
+    document.getElementById('missedCard').innerHTML='';
+    return;
+  }
   // Next session today or upcoming
   const sched=getSchedule(prog,cw,pref,dpw);
   const todayDow=(new Date().getDay()+6)%7;
   let nextS=null,nextDay='',nextDow=-1;
   for(let d=todayDow;d<7;d++){const it=sched[d];if(it?.s?.type&&it.s.type!=='r'&&!it.optional&&!it.movedAway){nextS=it.s;nextDay=DNAMES[d];nextDow=d;break;}}
-  const nc=document.getElementById('nextCard');
   if(nextS){
     const info=sInfo(nextS);const isToday=nextDow===todayDow;
     nc.innerHTML=`<div class="next-card">
@@ -1058,7 +1230,7 @@ function renderDash(){
 // ═══════════════════════════════════════════════════
 // PROGRAMME
 // ═══════════════════════════════════════════════════
-function renderProg(){
+function renderProg(dir){
   const prog=auth?.program||'5km';const dpw=auth?.daysPerWeek||5;const pref=auth?.preferredDays||[];
   const phase=phaseOf(prog,CW);const sched=getSchedule(prog,CW,pref,dpw);
   // Phase bar
@@ -1086,13 +1258,23 @@ function renderProg(){
     b.onclick=()=>{CW=w;renderProg();};wd.appendChild(b);
   }));
   wd.querySelector('.on')?.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+  // Tooltip drag au premier lancement
+  if(!localStorage.getItem('dragTipShown')){
+    localStorage.setItem('dragTipShown','1');
+    setTimeout(()=>toast('💡 Astuce : appui long sur ⠿ pour glisser une séance vers un autre jour',4000),800);
+  }
   // Day cards
   const grid=document.getElementById('dGrid');grid.innerHTML='';
+  // Apply slide animation
+  if(dir){
+    grid.classList.remove('slide-right','slide-left');
+    void grid.offsetWidth; // force reflow
+    grid.classList.add(dir==='right'?'slide-right':'slide-left');
+  }
   sched.forEach((item,i)=>{
     const{s,req,optional,movedAway,movedFrom}=item;
     const info=sInfo(s);const isRest=s.type==='r';const isRace=s.type==='co';
     const sess=gs(CW,i);const done=sess?.completed;const feel=sess?.feeling||0;
-    // Check if this day was moved away
     const origSess=gs(CW,i);const wasMoved=origSess?.movedTo!==undefined&&origSess?.movedTo!==null&&origSess?.movedTo!==i;
     const card=document.createElement('div');
     let cls='day-card';
@@ -1104,13 +1286,17 @@ function renderProg(){
     if(isRace)card.style.cssText='border-color:rgba(249,115,22,.4);background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(239,68,68,.06))';
     const hasSched=!isRest&&!isRace&&!wasMoved;
     card.className=cls;
+    card.dataset.day=i;
     card.innerHTML=`
       <div class="d-acc ${info.ac}"></div>
       <div class="d-body" ${(!isRest||movedFrom)?`onclick="openModal(${i})"`:''}> 
         <div class="d-namecol"><div class="d-name">${DNAMES[i]}</div></div>
         <div class="d-info">
-          <div class="d-title" ${isRace?'style="color:var(--orange)"':''}>${wasMoved?'<em style="color:var(--muted);font-size:11px">Déplacée vers '+DNAMES[origSess.movedTo]+'</em>':info.title}</div>
-          ${!wasMoved&&info.desc?`<div class="d-desc">${movedFrom!==null&&movedFrom!==undefined?'↩ Déplacée depuis '+DNAMES[movedFrom]:info.desc}</div>`:''}
+          <div class="d-title" ${isRace?'style="color:var(--orange)"':''}>${info.title}</div>
+          ${wasMoved
+            ? `<div class="d-desc" style="color:var(--muted);font-style:italic">↪ Déplacée → ${DNAMES[origSess.movedTo]}</div>`
+            : info.desc?`<div class="d-desc">${movedFrom!==null&&movedFrom!==undefined?'↩ Depuis '+DNAMES[movedFrom]+' · '+info.desc:info.desc}</div>`:''
+          }
         </div>
         <div class="d-right">
           ${wasMoved?'':optional&&!isRest?`<span style="font-size:9px;color:var(--muted);font-style:italic">optionnel</span>`:`<span class="badge ${info.cls}">${info.badge}</span>`}
@@ -1119,24 +1305,46 @@ function renderProg(){
         </div>
       </div>
       <div class="d-actions">
-        ${hasSched?`<button class="sched-btn" onclick="openReschedule(event,${CW},${i})" title="Déplacer cette séance">📅</button>`:''}
+        ${hasSched?`<button class="sched-btn" title="Glisser pour déplacer" style="cursor:grab;touch-action:none">⠿</button>`:''}
         ${!isRest&&!isRace&&!wasMoved?`<button class="chk ${done?'done':'undone'}" onclick="toggleDone(event,${CW},${i})">${done?'✅':'⭕'}</button>`:''}
       </div>`;
+    // Drag source — only real sessions that aren't races
+    if(hasSched){
+      initDrag(card,i);
+    }
+    // Drop target — all cards
+    initDrop(card,i);
     grid.appendChild(card);
   });
 }
-function chWeek(d){const n=CW+d;if(n>=1&&n<=18){CW=n;renderProg();}}
+function chWeek(d){const n=CW+d;if(n>=1&&n<=18){CW=n;renderProg(d>0?'right':'left');}}
 
 function toggleDone(e,w,d){
   e.stopPropagation();
-  const k=sk(w,d);if(!sessions[k])sessions[k]={};
+  // Avertissement si semaine future
+  const cw=calcCW()||1;
+  if(w>cw&&!sessions[sk(w,d)]?.completed){
+    if(!confirm(`⚠️ Cette séance est dans le futur (semaine ${w}, tu en es à la semaine ${cw}).\n\nLa marquer comme complétée quand même ?`))return;
+  }
+  const k=sk(w,d);
+  const wasDone=sessions[k]?.completed||false;
+  pushUndo(wasDone?'Séance déscochée':'Séance complétée',sessions);
+  if(!sessions[k])sessions[k]={};
   sessions[k].completed=!sessions[k].completed;
   sessions[k].timestamp=new Date().toISOString();
   if(!pending.includes(k))pending.push(k);
   saveL();renderProg();syncPending();
+  if(sessions[k].completed){
+    navigator.vibrate&&navigator.vibrate([30,20,60]);
+  } else {
+    navigator.vibrate&&navigator.vibrate(15);
+  }
   const prog=auth?.program||'5km';
   const done=wDone(prog,w);const tot=wTotal(prog,w);
-  if(sessions[k].completed&&done===tot&&tot>0){fireConfetti();toast('🎉 Semaine complète ! Bravo !');}
+  if(sessions[k].completed&&done===tot&&tot>0){
+    navigator.vibrate&&navigator.vibrate([40,30,40,30,120]);
+    fireConfetti();toast('🎉 Semaine complète ! Bravo !');
+  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -1180,6 +1388,7 @@ function openReschedule(e,w,d){
 }
 
 function applyReschedule(newDay){
+  pushUndo(`Séance déplacée → ${DNAMES[newDay]}`,sessions);
   const k=sk(schedWeek,schedDay);
   if(!sessions[k])sessions[k]={};
   sessions[k].movedTo=newDay;
@@ -1252,6 +1461,18 @@ function renderSettings(){
     document.getElementById('notifBtn').textContent=s==='granted'?'Activées':'Activer';
     document.getElementById('notifBtn').disabled=s==='denied';
   }
+  const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  // Android/Chrome: native install prompt
+  const pwaRow=document.getElementById('pwaInstallRow');
+  if(pwaRow)pwaRow.style.display=(deferredInstall&&!isStandalone)?'':'none';
+  // iOS: manual instructions
+  const iosRow=document.getElementById('iosInstallRow');
+  if(iosRow)iosRow.style.display=(isIOS&&!isStandalone)?'':'none';
+  // Auto-show iOS banner once
+  if(isIOS&&!isStandalone&&!localStorage.getItem('iosBannerShown')){
+    setTimeout(()=>showIosBanner(),1200);
+  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -1304,7 +1525,13 @@ function openProfile(){
   document.body.style.overflow='hidden';
 }
 
-function setPProg(p){auth._tmpProg=p;document.querySelectorAll('.pseg-opt').forEach((b,i)=>{if(b.textContent.includes('km'))b.classList.toggle('on',b.textContent.trim()===p);});}
+function setPProg(p){
+  auth._tmpProg=p;
+  document.querySelectorAll('.pseg-opt').forEach(b=>{
+    const t=b.textContent.trim().replace(/\s/g,'');
+    if(t==='5km'||t==='10km')b.classList.toggle('on',t===p);
+  });
+}
 function setPDpw(n){
   auth._tmpDpw=n;
   document.querySelectorAll('.pseg-opt').forEach(b=>{if(['3 j.','4 j.','5 j.'].includes(b.textContent.trim()))b.classList.toggle('on',b.textContent.trim()===(n+' j.'));});
@@ -1337,6 +1564,19 @@ async function saveProfile(){
   const newDate=document.getElementById('pDateInput')?.value||auth.startDate;
   const newDays=pDaysTmp||auth.preferredDays;
   const newDpw=auth._tmpDpw||newDays.length;
+
+  // Program change warning
+  if(newProg!==auth.program){
+    const confirmed=confirm(
+      `⚠️ ATTENTION — Changement de programme\n\n`+
+      `Tu passes du programme ${auth.program.toUpperCase()} au programme ${newProg.toUpperCase()}.\n\n`+
+      `Ta progression sera conservée, mais les séances de l'autre programme ne seront pas affichées.\n\n`+
+      `Tu pourras annuler immédiatement après si tu t'es trompé·e.\n\nConfirmer ?`
+    );
+    if(!confirmed){delete auth._tmpProg;return;}
+  }
+
+  pushUndo(`Profil modifié (${auth.program}→${newProg})`,sessions,auth);
   auth.program=newProg;auth.startDate=newDate;auth.preferredDays=newDays;auth.daysPerWeek=newDpw;
   delete auth._tmpProg;delete auth._tmpDpw;pDaysTmp=null;saveA();
   if(navigator.onLine)api({action:'update_profile',userId:auth.userId,token:auth.token,
@@ -1628,7 +1868,7 @@ function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-th
 // ═══════════════════════════════════════════════════
 function doPrint(mode){
   const prog=auth?.program||'5km';const dpw=auth?.daysPerWeek||5;const pref=auth?.preferredDays||[];
-  const phases=PHASES_MAP[prog];const lbl=`Programme No ${prog==='5km'?'10':'8'} — Mon Premier ${prog}`;
+  const phases=PHASES_MAP[prog];const lbl=`Programme ${prog==='5km'?'5 km':'10 km'} — Mon Premier ${prog}`;
   const style=`<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;color:#000;background:#fff;padding:16px;font-size:10pt}h1{font-size:16pt;margin-bottom:4px}h2{font-size:11pt;margin:12px 0 4px;padding-left:7px;border-left:3px solid #F97316}.ph{background:#F97316;color:#fff;padding:4px 9px;font-size:10pt;font-weight:bold;margin:14px 0 4px;border-radius:3px;page-break-after:avoid}table{border-collapse:collapse;width:100%;font-size:9pt;margin-bottom:10px}th{background:#f0f0f0;font-weight:bold;padding:4px 6px;border:1px solid #ccc;text-align:left}td{padding:3px 6px;border:1px solid #ccc;vertical-align:top}tr:nth-child(even) td{background:#fafafa}.footer{font-size:8pt;color:#888;border-top:1px solid #ccc;padding-top:5px;margin-top:12px}</style>`;
   function mkTable(w){
     const sched=getSchedule(prog,w,pref,dpw);
@@ -1638,10 +1878,10 @@ function doPrint(mode){
       return`<tr><td style="font-weight:bold;white-space:nowrap">${DNAMES[i]}</td><td>${info.title}${item.optional?' <em style="color:#888">(opt.)</em>':''}${movedNote}</td><td style="color:#555">${info.desc}</td><td style="text-align:center;white-space:nowrap">${info.dur||'—'}</td><td style="text-align:center">${item.s.eff?item.s.eff+'/10':''}</td><td>${sess.completed?'✅':''} ${feel} ${(sess.note||'').substring(0,40)}</td></tr>`;
     }).join('')}</tbody></table>`;
   }
-  let body=`<h1>${lbl}</h1><p style="color:#666;margin:3px 0 12px;font-size:10pt">${dpw} jours/semaine · La Clinique du Coureur</p>`;
+  let body=`<h1>${lbl}</h1><p style="color:#666;margin:3px 0 12px;font-size:10pt">${dpw} jours/semaine · Basé sur les programmes de la Clinique du Coureur</p>`;
   if(mode==='week'){body+=`<h2>${phaseOf(prog,CW)?.name||''} — Semaine ${CW}/18</h2>${mkTable(CW)}`;}
   else{phases.forEach(ph=>{body+=`<div class="ph">${ph.name.toUpperCase()}</div>`;ph.weeks.forEach(w=>body+=`<h2>Semaine ${w}</h2>${mkTable(w)}`);});}
-  body+=`<div class="footer">Créé par Kevin Tremblay · © 2026 · lacliniqueducoureur.com</div>`;
+  body+=`<div class="footer">Basé sur les programmes de la Clinique du Coureur · Créé par Kevin Tremblay · © 2026</div>`;
   const pw=window.open('','_blank');
   if(!pw){alert('Autorise les pop-ups pour imprimer.');return;}
   pw.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${lbl}</title>${style}</head><body>${body}<script>window.onload=()=>{window.print();}<\/script></body></html>`);
@@ -1670,7 +1910,244 @@ document.addEventListener('touchend',e=>{
 },{passive:true});
 window.addEventListener('online',()=>{setSyncDot('s');syncPending();});
 window.addEventListener('offline',()=>setSyncDot('e'));
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').then(reg=>{
+      // Détecter une mise à jour en attente
+      reg.addEventListener('updatefound',()=>{
+        const nw=reg.installing;
+        if(!nw)return;
+        nw.addEventListener('statechange',()=>{
+          if(nw.state==='installed'&&navigator.serviceWorker.controller){
+            // Nouvelle version prête — afficher bannière
+            document.getElementById('updateBanner').classList.add('vis');
+            window._pendingSW=nw;
+          }
+        });
+      });
+      // Vérifier si un SW en attente existe déjà au chargement
+      if(reg.waiting&&navigator.serviceWorker.controller){
+        document.getElementById('updateBanner').classList.add('vis');
+        window._pendingSW=reg.waiting;
+      }
+    }).catch(()=>{});
+    // Recharger quand le SW prend le contrôle après skipWaiting
+    let refreshing=false;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(refreshing)return;refreshing=true;location.reload();
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// UNDO SYSTEM
+// ═══════════════════════════════════════════════════
+let undoStack=[];let undoTimer=null;
+function pushUndo(label,snapshotSessions,snapshotAuth){
+  undoStack.push({label,sessions:JSON.parse(JSON.stringify(snapshotSessions)),auth:JSON.parse(JSON.stringify(snapshotAuth||auth))});
+  if(undoStack.length>10)undoStack.shift();
+  showUndoToast(label);
+}
+function showUndoToast(label){
+  clearTimeout(undoTimer);
+  const t=document.getElementById('undoToast');
+  document.getElementById('undoMsg').textContent=label;
+  t.classList.add('vis');
+  undoTimer=setTimeout(()=>t.classList.remove('vis'),5000);
+}
+function doUndo(){
+  clearTimeout(undoTimer);
+  document.getElementById('undoToast').classList.remove('vis');
+  if(!undoStack.length){toast('Rien à annuler');return;}
+  const snap=undoStack.pop();
+  sessions=snap.sessions;
+  const prevProg=snap.auth.program;const prevStart=snap.auth.startDate;
+  const prevDays=snap.auth.preferredDays;const prevDpw=snap.auth.daysPerWeek;
+  auth.program=prevProg;auth.startDate=prevStart;auth.preferredDays=prevDays;auth.daysPerWeek=prevDpw;
+  saveL();saveA();
+  if(navigator.onLine)api({action:'update_profile',userId:auth.userId,token:auth.token,
+    program:auth.program,startDate:auth.startDate,daysPerWeek:auth.daysPerWeek,preferredDays:JSON.stringify(auth.preferredDays)});
+  updateHeaderUI();const cw=calcCW();if(cw)CW=cw;
+  renderAll();toast('↩ Modification annulée');
+}
+
+// ═══════════════════════════════════════════════════
+// DRAG & DROP ENGINE
+// ═══════════════════════════════════════════════════
+let dragSrcDay=null;const ghost=()=>document.getElementById('dragGhost');
+
+function initDrag(card,dayIdx){
+  // Touch drag
+  let longPressTimer=null;let isDragging=false;let startX=0,startY=0;
+  card.addEventListener('touchstart',e=>{
+    const btn=e.target.closest('.sched-btn,.chk');
+    if(!btn&&!e.target.closest('.sched-btn'))return; // only from handle or card body long-press
+    // allow long press on card body too
+    if(e.target.closest('.chk'))return;
+    startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+    longPressTimer=setTimeout(()=>{
+      isDragging=true;dragSrcDay=dayIdx;
+      card.classList.add('dragging');
+      const g=ghost();g.textContent=card.querySelector('.d-title')?.textContent||'Séance';
+      g.classList.add('vis');g.style.left=(startX-40)+'px';g.style.top=(startY-30)+'px';
+      navigator.vibrate&&navigator.vibrate(30);
+    },300);
+  },{passive:true});
+  card.addEventListener('touchmove',e=>{
+    if(!isDragging){clearTimeout(longPressTimer);return;}
+    e.preventDefault();
+    const t=e.touches[0];
+    const g=ghost();g.style.left=(t.clientX-40)+'px';g.style.top=(t.clientY-30)+'px';
+    // highlight card under finger
+    document.querySelectorAll('.day-card').forEach(c=>c.classList.remove('drag-over'));
+    const el=document.elementFromPoint(t.clientX,t.clientY)?.closest('.day-card');
+    if(el&&parseInt(el.dataset.day)!==dragSrcDay)el.classList.add('drag-over');
+  },{passive:false});
+  card.addEventListener('touchend',e=>{
+    clearTimeout(longPressTimer);
+    if(!isDragging){isDragging=false;return;}
+    isDragging=false;
+    card.classList.remove('dragging');
+    ghost().classList.remove('vis');
+    document.querySelectorAll('.day-card').forEach(c=>c.classList.remove('drag-over'));
+    const t=e.changedTouches[0];
+    const el=document.elementFromPoint(t.clientX,t.clientY)?.closest('.day-card');
+    if(el){const destDay=parseInt(el.dataset.day);if(!isNaN(destDay)&&destDay!==dragSrcDay)handleDrop(dragSrcDay,destDay);}
+    dragSrcDay=null;
+  },{passive:true});
+
+  // Mouse drag
+  card.addEventListener('mousedown',e=>{
+    if(!e.target.closest('.sched-btn'))return;
+    e.preventDefault();dragSrcDay=dayIdx;
+    card.classList.add('dragging');
+    const g=ghost();g.textContent=card.querySelector('.d-title')?.textContent||'Séance';
+    g.classList.add('vis');g.style.left=(e.clientX-40)+'px';g.style.top=(e.clientY-30)+'px';
+  });
+}
+function initDrop(card,dayIdx){
+  card.addEventListener('dragover',e=>{e.preventDefault();if(dragSrcDay!==null&&dragSrcDay!==dayIdx)card.classList.add('drag-over');});
+  card.addEventListener('dragleave',()=>card.classList.remove('drag-over'));
+  card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-over');if(dragSrcDay!==null&&dragSrcDay!==dayIdx)handleDrop(dragSrcDay,dayIdx);dragSrcDay=null;});
+}
+document.addEventListener('mousemove',e=>{
+  if(dragSrcDay===null)return;
+  const g=ghost();g.style.left=(e.clientX-40)+'px';g.style.top=(e.clientY-30)+'px';
+  document.querySelectorAll('.day-card').forEach(c=>c.classList.remove('drag-over'));
+  const el=document.elementFromPoint(e.clientX,e.clientY)?.closest('.day-card');
+  if(el&&parseInt(el.dataset.day)!==dragSrcDay)el.classList.add('drag-over');
+});
+document.addEventListener('mouseup',e=>{
+  if(dragSrcDay===null)return;
+  document.querySelectorAll('.day-card').forEach(c=>{c.classList.remove('drag-over');c.classList.remove('dragging');});
+  ghost().classList.remove('vis');
+  const el=document.elementFromPoint(e.clientX,e.clientY)?.closest('.day-card');
+  if(el){const dest=parseInt(el.dataset.day);if(!isNaN(dest)&&dest!==dragSrcDay)handleDrop(dragSrcDay,dest);}
+  dragSrcDay=null;
+});
+
+function handleDrop(srcDay,destDay){
+  const prog=auth?.program||'5km';const dpw=auth?.daysPerWeek||5;const pref=auth?.preferredDays||[];
+  const sched=getSchedule(prog,CW,pref,dpw);
+  const srcItem=sched[srcDay];
+  if(!srcItem||srcItem.s.type==='r')return;
+  const destItem=sched[destDay];
+  const destHasReal=destItem&&destItem.s.type!=='r'&&!destItem.movedAway;
+  if(destHasReal){
+    // Conflict — ask user
+    showConflict(srcDay,destDay,srcItem,destItem);
+  } else {
+    applyDropMove(srcDay,destDay);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// CONFLICT DIALOG
+// ═══════════════════════════════════════════════════
+let conflictSrc=null,conflictDest=null;
+function showConflict(srcDay,destDay,srcItem,destItem){
+  conflictSrc=srcDay;conflictDest=destDay;
+  const srcInfo=sInfo(srcItem.s);const destInfo=sInfo(destItem.s);
+  document.getElementById('conflictTitle').textContent='Conflit de séance 📅';
+  document.getElementById('conflictDesc').innerHTML=
+    `<strong>${DNAMES[srcDay]}</strong> → <strong>${DNAMES[destDay]}</strong><br><br>`+
+    `Il y a déjà une séance ce jour-là : <strong>${destInfo.title}</strong>.<br><br>Que veux-tu faire ?`;
+  document.getElementById('conflictBtns').innerHTML=`
+    <button class="btn primary" style="margin:0" onclick="conflictReplace()">Déplacer quand même (remplacer)</button>
+    <button class="btn" style="margin:0" onclick="conflictBoth()">📅 Mettre les deux le même jour</button>
+    <button class="btn" style="margin:0" onclick="conflictShift()">Décaler ${DNAMES[destDay]} au lendemain</button>
+    <button class="btn ghost" style="margin:0" onclick="closeConflict()">Annuler</button>`;
+  document.getElementById('conflictOverlay').classList.add('vis');
+}
+function closeConflict(){document.getElementById('conflictOverlay').classList.remove('vis');conflictSrc=null;conflictDest=null;}
+function conflictReplace(){closeConflict();applyDropMove(conflictSrc,conflictDest);}
+function conflictBoth(){
+  // Mark both as scheduled that day — append note to dest session
+  if(conflictSrc===null)return;closeConflict();
+  pushUndo(`Double séance ${DNAMES[conflictDest]}`,sessions);
+  const k=sk(CW,conflictSrc);if(!sessions[k])sessions[k]={};
+  sessions[k].movedTo=conflictDest;sessions[k].timestamp=new Date().toISOString();
+  if(!pending.includes(k))pending.push(k);
+  saveL();syncPending();renderProg();
+  toast(`✅ Les deux séances sont le ${DNAMES[conflictDest]}`);
+}
+function conflictShift(){
+  if(conflictSrc===null||conflictDest===null)return;closeConflict();
+  const newDest=(conflictDest+1)%7;
+  pushUndo(`Séance décalée vers ${DNAMES[newDest]}`,sessions);
+  // move src to conflictDest, move dest session to newDest
+  const kSrc=sk(CW,conflictSrc);if(!sessions[kSrc])sessions[kSrc]={};
+  sessions[kSrc].movedTo=conflictDest;sessions[kSrc].timestamp=new Date().toISOString();
+  if(!pending.includes(kSrc))pending.push(kSrc);
+  const kDest=sk(CW,conflictDest);if(!sessions[kDest])sessions[kDest]={};
+  sessions[kDest].movedTo=newDest;sessions[kDest].timestamp=new Date().toISOString();
+  if(!pending.includes(kDest))pending.push(kDest);
+  saveL();syncPending();renderProg();
+  toast(`✅ Séances réorganisées`);
+}
+function applyDropMove(srcDay,destDay){
+  pushUndo(`Séance déplacée → ${DNAMES[destDay]}`,sessions);
+  const k=sk(CW,srcDay);if(!sessions[k])sessions[k]={};
+  sessions[k].movedTo=destDay;sessions[k].timestamp=new Date().toISOString();
+  if(!pending.includes(k))pending.push(k);
+  saveL();syncPending();renderProg();
+  toast(`✅ Séance déplacée vers ${DNAMES[destDay]}`);
+}
+
+// ═══════════════════════════════════════════════════
+// SERVICE WORKER UPDATE
+// ═══════════════════════════════════════════════════
+function applyUpdate(){
+  document.getElementById('updateBanner').classList.remove('vis');
+  if(window._pendingSW){window._pendingSW.postMessage('skipWaiting');}
+  else{location.reload();}
+}
+function dismissUpdate(){
+  document.getElementById('updateBanner').classList.remove('vis');
+}
+
+// ═══════════════════════════════════════════════════
+// IOS INSTALL BANNER
+// ═══════════════════════════════════════════════════
+function showIosBanner(){
+  localStorage.setItem('iosBannerShown','1');
+  document.getElementById('iosBanner').classList.add('vis');
+}
+function closeIosBanner(){
+  document.getElementById('iosBanner').classList.remove('vis');
+}
+
+// ═══════════════════════════════════════════════════
+// PWA INSTALL PROMPT
+// ═══════════════════════════════════════════════════
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;renderSettings();});
+window.addEventListener('appinstalled',()=>{deferredInstall=null;renderSettings();toast('✅ App installée sur l\'écran d\'accueil !');});
+function triggerInstall(){
+  if(!deferredInstall)return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(()=>{deferredInstall=null;renderSettings();});
+}
 
 // ═══════════════════════════════════════════════════
 // INIT
