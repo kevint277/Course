@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Mon 5/10 km">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <title>Mon Premier 5 / 10 km</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
@@ -177,7 +179,6 @@ select.inp{cursor:pointer}
 .day-card.repos{opacity:.4}
 .day-card.done{border-color:rgba(34,197,94,.4)}
 .day-card.optional{opacity:.6}
-.day-card.moved-away{opacity:.35;border-style:dashed}
 .d-acc{width:4px;flex-shrink:0}
 .d-body{flex:1;padding:9px 11px;display:flex;align-items:center;gap:9px;min-width:0}
 .d-namecol{min-width:60px;flex-shrink:0}
@@ -192,7 +193,9 @@ select.inp{cursor:pointer}
 .moved-lbl{font-size:9px;color:var(--muted);font-style:italic}
 .d-actions{display:flex;align-items:center;gap:2px;padding-right:6px;flex-shrink:0}
 .chk{width:32px;height:32px;border-radius:8px;border:none;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;-webkit-tap-highlight-color:transparent}
-.chk.done{background:rgba(34,197,94,.15)}.chk.undone{background:var(--border)}
+.chk.done{background:rgba(34,197,94,.15)}
+.chk.partial{background:rgba(234,179,8,.18)}
+.chk.undone{background:var(--border)}
 .sched-btn{width:28px;height:28px;border-radius:7px;border:none;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(59,130,246,.1);color:var(--blue);-webkit-tap-highlight-color:transparent}
 /* diff */
 .de{background:rgba(34,197,94,.12);color:#15803d}[data-theme="dark"] .de{color:#4ADE80}
@@ -261,8 +264,9 @@ select.inp{cursor:pointer}
 /* ══ BOTTOM SHEETS (modal) ══════════════════════ */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:400;opacity:0;pointer-events:none;transition:opacity .3s}
 .overlay.open{opacity:1;pointer-events:all}
-.sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-radius:22px 22px 0 0;z-index:401;max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-radius:22px 22px 0 0;z-index:401;max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);touch-action:pan-y}
 .sheet.open{transform:translateY(0)}
+.sheet.dragging{transition:none}
 .sh-handle{width:36px;height:4px;background:var(--border);border-radius:99px;margin:10px auto 0}
 .sh-hdr{padding:12px 16px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .sh-tag{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
@@ -295,6 +299,19 @@ select.inp{cursor:pointer}
 .jtxt:focus{border-color:var(--orange)}
 .jsave{width:100%;padding:10px;border:none;border-radius:8px;background:var(--orange);color:white;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
 .timer-open-btn{width:100%;padding:11px;border:none;border-radius:8px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:var(--blue);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:7px}
+
+/* ══ INTERVAL PANEL ══════════════════════════════ */
+.itv-panel{background:linear-gradient(135deg,rgba(59,130,246,.07),rgba(168,85,247,.05));border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px;margin-bottom:8px}
+.itv-panel-title{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
+.itv-panel-sub{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+.itv-app-links{display:flex;gap:8px;flex-wrap:wrap}
+.itv-app-btn{display:flex;align-items:center;gap:10px;flex:1;min-width:140px;padding:10px 12px;border-radius:10px;text-decoration:none;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.itv-app-btn.ios{background:rgba(0,122,255,.1);border:1px solid rgba(0,122,255,.25)}
+.itv-app-btn.android{background:rgba(52,168,83,.1);border:1px solid rgba(52,168,83,.25)}
+.itv-app-btn:active{transform:scale(.97)}
+.itv-app-icon{font-size:22px;flex-shrink:0}
+.itv-app-name{font-size:13px;font-weight:700;color:var(--text)}
+.itv-app-store{font-size:10px;color:var(--muted);margin-top:1px}
 .share-btn{width:100%;padding:10px;border:none;border-radius:8px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);color:var(--purple);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:7px}
 
 /* ══ RESCHEDULE SHEET ═══════════════════════════ */
@@ -347,7 +364,32 @@ select.inp{cursor:pointer}
 .t-btn.close{background:var(--orange);color:white;padding:13px 40px}
 .t-name{font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:18px}
 
-/* ══ UPDATE BANNER ══════════════════════════════ */
+/* ══ DELETE ACCOUNT MODAL ══════════════════════ */
+.del-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:900;display:none;align-items:center;justify-content:center;padding:24px}
+.del-overlay.vis{display:flex}
+.del-box{background:var(--surface);border-radius:var(--r);padding:22px;max-width:360px;width:100%;border:2px solid rgba(239,68,68,.3)}
+.del-title{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:var(--red);margin-bottom:6px}
+.del-desc{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px}
+.del-field-label{font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px;display:block}
+
+/* ══ DELETE ACCOUNT MODAL ════════════════════════ */
+.del-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(5px);z-index:900;display:none;align-items:flex-end;justify-content:center;padding:0}
+.del-overlay.vis{display:flex}
+.del-box{background:var(--surface);border-radius:22px 22px 0 0;padding:22px 20px 40px;width:100%;max-width:480px;box-shadow:0 -8px 30px rgba(0,0,0,.25)}
+.del-title{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:var(--red);margin-bottom:6px}
+.del-desc{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px}
+.del-warn{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--red);line-height:1.5;margin-bottom:14px}
+.del-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;display:block}
+.del-err{color:var(--red);font-size:12px;min-height:16px;margin-bottom:8px}
+
+/* ══ DELETE ACCOUNT MODAL ════════════════════════ */
+.del-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:900;display:none;align-items:center;justify-content:center;padding:24px}
+.del-overlay.vis{display:flex}
+.del-box{background:var(--surface);border-radius:var(--r);padding:24px;max-width:360px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.4);border:1px solid rgba(239,68,68,.3)}
+.del-title{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--red);margin-bottom:8px}
+.del-warn{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--text);line-height:1.6;margin-bottom:16px}
+.del-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:block}
+.del-err{color:var(--red);font-size:12px;min-height:18px;margin:6px 0}
 .update-banner{position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,var(--orange),#e05d0a);color:white;padding:10px 16px;z-index:1000;display:none;align-items:center;justify-content:space-between;gap:10px;font-size:13px;font-weight:600;box-shadow:0 2px 12px rgba(249,115,22,.4)}
 .update-banner.vis{display:flex}
 .update-banner-btns{display:flex;gap:8px;flex-shrink:0}
@@ -478,6 +520,7 @@ select.inp{cursor:pointer}
     </div>
     <div id="nextCard"></div>
     <div id="missedCard"></div>
+    <div id="weekMoodCard"></div>
     <div id="notifCard"></div>
     <div id="weekSummary"></div>
     <div class="recent-sec">
@@ -517,11 +560,14 @@ select.inp{cursor:pointer}
       <div class="streak-card" id="streakCard"></div>
       <div class="stat-grid" id="statGrid"></div>
       <div class="chart-card">
-        <div class="chart-t">Séances complétées par semaine</div>
-        <div class="bar-chart" id="barChart"></div>
+        <div class="chart-t">Progression — 8 semaines autour de la semaine actuelle</div>
+        <div class="bar-chart" id="barChart" style="position:relative"></div>
+        <div id="barChartNav"></div>
       </div>
       <div class="sec-title" style="margin-bottom:9px">🏆 Succès</div>
       <div id="achList"></div>
+      <div class="sec-title" style="margin-bottom:9px;margin-top:4px">📝 Journal de course</div>
+      <div id="journalHistory"></div>
     </div>
   </div>
 
@@ -655,15 +701,54 @@ select.inp{cursor:pointer}
     <span>🔵 <strong>1 bip</strong> = récupération</span> &nbsp;
     <span>🎵 <strong>3 bips</strong> = terminé</span>
   </div>
+  <div style="background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.3);border-radius:8px;padding:8px 12px;font-size:11px;color:#92700a;margin-bottom:14px;max-width:320px;text-align:center;line-height:1.5">
+    ⚠️ <strong>Garde l'écran allumé</strong> — les bips jouent même si l'app passe en arrière-plan, mais la voix nécessite que l'écran reste actif.
+  </div>
   <div class="t-btns" id="tBtns">
     <button class="t-btn pause" id="tPause" onclick="togglePause()">⏸ Pause</button>
     <button class="t-btn stop" onclick="stopTimer()">⏹ Fin</button>
+  </div>
+  <div style="margin-top:12px">
+    <button id="tVoiceBtn" onclick="toggleVoice()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 14px;color:var(--muted);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer">🔇 Voix désactivée</button>
   </div>
   <div id="tDone" style="display:none;text-align:center">
     <div style="font-size:56px;margin-bottom:10px">🎉</div>
     <div style="font-family:'Oswald',sans-serif;font-size:26px;color:var(--orange);margin-bottom:10px">Séance terminée !</div>
     <p style="font-size:13px;color:var(--muted);margin-bottom:18px">N'oublie pas ton retour au calme (3–5 min de marche).</p>
     <button class="t-btn close" onclick="stopTimer()">Fermer</button>
+  </div>
+</div>
+
+<!-- Delete account modal -->
+<div class="del-overlay" id="delOverlay">
+  <div class="del-box">
+    <div class="del-title">⚠️ Supprimer mon compte</div>
+    <div class="del-desc">Cette action est <strong>irréversible</strong>. Toute ta progression, tes séances et ton compte seront définitivement supprimés.<br><br>Pour confirmer, entre ton NIP et écris le mot <strong>Confirmer</strong> ci-dessous.</div>
+    <label class="del-field-label">Ton NIP (4 chiffres)</label>
+    <input type="password" id="delPin" class="inp" placeholder="••••" maxlength="4" inputmode="numeric" style="margin-bottom:12px">
+    <label class="del-field-label">Écris « Confirmer » pour valider</label>
+    <input type="text" id="delConfirm" class="inp" placeholder="Confirmer" autocomplete="off" style="margin-bottom:6px">
+    <div class="err" id="delErr" style="margin-bottom:10px"></div>
+    <button class="btn danger" onclick="doDeleteAccount()" style="margin-bottom:8px">🗑 Supprimer définitivement</button>
+    <button class="btn ghost" onclick="closeDelModal()">Annuler</button>
+  </div>
+</div>
+
+<!-- Delete account modal -->
+<div class="del-overlay" id="delOverlay">
+  <div class="del-box">
+    <div class="del-title">⚠️ Supprimer mon compte</div>
+    <div class="del-desc">Cette action est <strong>irréversible</strong>. Toute ta progression, tes données et ton compte seront définitivement effacés.</div>
+    <div class="del-warn">🔴 Il n'y a aucun moyen de récupérer tes données après la suppression.</div>
+    <label class="del-label">Ton NIP à 4 chiffres</label>
+    <div class="pin-wrap" style="margin-bottom:10px">
+      <input type="password" id="delPin" class="inp" placeholder="NIP" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" autocomplete="current-password" style="letter-spacing:6px;font-size:20px;padding-right:10px">
+    </div>
+    <label class="del-label">Écris <strong style="color:var(--red)">Confirmer</strong> pour valider</label>
+    <input type="text" id="delConfirm" class="inp" placeholder="Confirmer" autocomplete="off" style="margin-bottom:6px">
+    <div class="del-err" id="delErr"></div>
+    <button class="btn danger" onclick="doDeleteAccount()" style="margin-bottom:8px">🗑 Supprimer définitivement</button>
+    <button class="btn ghost" onclick="closeDelModal()">Annuler</button>
   </div>
 </div>
 
@@ -686,6 +771,24 @@ select.inp{cursor:pointer}
     <div class="ios-step"><div class="ios-step-num">1</div><span>Appuie sur <em>Partager</em> <em>⬆️</em> en bas de Safari</span></div>
     <div class="ios-step"><div class="ios-step-num">2</div><span>Fais défiler et choisis <em>« Sur l'écran d'accueil »</em></span></div>
     <div class="ios-step"><div class="ios-step-num">3</div><span>Appuie sur <em>Ajouter</em> — l'app apparaîtra sur ton écran !</span></div>
+  </div>
+</div>
+
+<!-- Delete account modal -->
+<div class="del-overlay" id="delOverlay">
+  <div class="del-box">
+    <div class="del-title">⚠️ Supprimer le compte</div>
+    <div class="del-warn">
+      Cette action est <strong>définitive et irréversible</strong>.<br>
+      Ton compte, ta progression et toutes tes données seront supprimés de façon permanente.
+    </div>
+    <span class="del-label">Ton NIP à 4 chiffres</span>
+    <input type="password" id="delPin" class="inp" placeholder="NIP" maxlength="4" inputmode="numeric" autocomplete="off" style="margin-bottom:10px;letter-spacing:6px;font-size:20px;text-align:center">
+    <span class="del-label">Écris <strong>CONFIRMER</strong> pour valider</span>
+    <input type="text" id="delConfirm" class="inp" placeholder="CONFIRMER" autocomplete="off" style="margin-bottom:4px">
+    <div class="del-err" id="delErr"></div>
+    <button class="btn danger" onclick="doDeleteAccount()" style="margin-top:4px;margin-bottom:8px" id="delBtn">🗑 Supprimer définitivement</button>
+    <button class="btn ghost" onclick="closeDeleteModal()" style="margin-bottom:0">Annuler</button>
   </div>
 </div>
 
@@ -866,15 +969,15 @@ function getSchedule(prog,week,prefDays,dpw){
   moves.forEach(({from,s})=>{
     base[from]={s:R(),req:false,di:from,optional:false,movedFrom:null,movedTo:null,movedAway:true,origSession:s};
   });
-  // Ensuite placer aux destinations (la case est libre si elle est de type 'r' maintenant)
+  // Ensuite placer aux destinations
   moves.forEach(({from,to,s})=>{
     if(base[to]&&base[to].s.type==='r'){
+      // Destination libre — placement normal
       base[to]={s,req:true,di:to,optional:false,movedFrom:from,movedTo:null};
-    }
-    // Si la destination est déjà occupée par une autre session déplacée là, on empile (both)
-    else if(base[to]&&base[to].movedFrom!==undefined){
-      // deux sessions sur le même jour — on garde les deux en affichant une note
-      base[to]={s,req:true,di:to,optional:false,movedFrom:from,movedTo:null,hasConflict:true};
+    } else if(base[to]){
+      // Destination occupée — empiler (cas "les deux le même jour")
+      // On garde la session principale et on attache la session déplacée en extra
+      base[to]={...base[to], stackedSession:{s, movedFrom:from}};
     }
   });
   _schedCache[key]=base;
@@ -897,15 +1000,19 @@ function loadL(){
   try{sessions=JSON.parse(localStorage.getItem(K.S)||'{}');}catch(e){sessions={};}
   try{pending=JSON.parse(localStorage.getItem(K.P)||'[]');}catch(e){pending=[];}
 }
+let _locallyDirty=false;
+let _lastFetchTime=0;
+
 function saveL(){
   // Purge entrées vides pour alléger le localStorage
   Object.keys(sessions).forEach(k=>{
     const s=sessions[k];
-    if(!s||(!s.completed&&!s.note&&!s.feeling&&!s.comment&&s.movedTo==null&&s.movedTo!==0))delete sessions[k];
+    if(!s||(!s.completed&&!s.partial&&!s.note&&!s.feeling&&!s.comment&&s.movedTo==null&&s.movedTo!==0))delete sessions[k];
   });
   // Cap pending à 200 entrées max
   if(pending.length>200)pending=pending.slice(-200);
   invalidateSchedCache();
+  _locallyDirty=true;
   localStorage.setItem(K.S,JSON.stringify(sessions));
   localStorage.setItem(K.P,JSON.stringify(pending));
 }
@@ -913,13 +1020,22 @@ function saveA(){localStorage.setItem(K.A,JSON.stringify(auth));invalidateSchedC
 function sk(w,d){return`w${w}d${d}`;}
 function gs(w,d){return sessions[sk(w,d)]||null;}
 function wDone(prog,w){
-  // Use getSchedule so moved sessions are counted at their effective day
   const pref=auth?.preferredDays||[];const dpw=auth?.daysPerWeek||5;
   const sched=getSchedule(prog,w,pref,dpw);
   return sched.filter((item,i)=>item.s.type!=='r'&&item.s.type!=='co'&&!item.movedAway&&gs(w,i)?.completed).length;
 }
+function wPartial(prog,w){
+  const pref=auth?.preferredDays||[];const dpw=auth?.daysPerWeek||5;
+  const sched=getSchedule(prog,w,pref,dpw);
+  return sched.filter((item,i)=>item.s.type!=='r'&&item.s.type!=='co'&&!item.movedAway&&gs(w,i)?.partial&&!gs(w,i)?.completed).length;
+}
 function wTotal(prog,w){return(PROGS[prog]?.[w]||[]).filter(s=>s.type!=='r'&&s.type!=='co').length;}
 
+function wPartialTotal(){
+  const prog=auth?.program||'5km';let n=0;
+  for(let w=1;w<=18;w++)n+=wPartial(prog,w);
+  return n;
+}
 function computeStats(){
   const prog=auth?.program||'5km';
   const pref=auth?.preferredDays||[];const dpw=auth?.daysPerWeek||5;
@@ -954,7 +1070,7 @@ async function api(payload,timeoutMs=10000){
     return{ok:false,error:'Hors ligne'};
   }
 }
-function setSyncDot(s){const d=document.getElementById('syncDot');if(!d)return;d.className='sync-dot'+(s==='s'?' s':s==='e'?' e':'');}
+function setSyncDotOld_unused(){} // replaced above
 async function syncPending(){
   if(!auth||!pending.length)return;
   if(!navigator.onLine){setSyncDot('e');return;}
@@ -970,7 +1086,6 @@ async function fetchData(){
   if(!auth||!navigator.onLine)return;
   const r=await api({action:'get_data',userId:auth.userId,token:auth.token});
   if(!r.ok)return;
-  // Merge sessions — only overwrite if remote timestamp is newer
   if(r.sessions)r.sessions.forEach(s=>{
     const k=sk(s.week,s.day);
     const local=sessions[k];
@@ -984,13 +1099,16 @@ async function fetchData(){
   if(r.startDate&&!auth.startDate){auth.startDate=r.startDate;saveA();}
   if(r.program&&!auth.program){auth.program=r.program;auth.daysPerWeek=r.daysPerWeek||5;auth.preferredDays=r.preferredDays||[];saveA();}
   saveL();
-  // Re-rend l'écran actif pour refléter les données fraîches
+  _lastFetchTime=Date.now();
+  _locallyDirty=false;
   renderAll();
 }
 
-// Polling toutes les 30s quand l'app est en ligne et visible
+// Polling toutes les 30s — seulement si données locales changées ou >2min depuis dernier fetch
 setInterval(()=>{
-  if(auth&&navigator.onLine&&!document.hidden)fetchData().then(syncPending);
+  if(!auth||!navigator.onLine||document.hidden)return;
+  const stale=Date.now()-_lastFetchTime>120000;
+  if(_locallyDirty||stale)fetchData().then(syncPending);
 },30000);
 document.addEventListener('visibilitychange',()=>{
   if(!document.hidden&&auth&&navigator.onLine)fetchData().then(syncPending);
@@ -1101,13 +1219,34 @@ function togD(i){
   document.querySelectorAll('.dp-btn').forEach((b,j)=>b.classList.toggle('sel',wizData.preferredDays.includes(j)));
   document.getElementById('dpCt').textContent=wizData.daysPerWeek;
 }
-function wizDate(){const t=new Date().toISOString().split('T')[0];
+function wizDate(){
+  // Proposer le prochain lundi comme valeur par défaut
+  const today=new Date();
+  const dow=today.getDay(); // 0=dim, 1=lun...
+  const daysToMon=dow===0?1:(dow===1?0:8-dow);
+  const nextMon=new Date(today);nextMon.setDate(today.getDate()+daysToMon);
+  const defVal=nextMon.toISOString().split('T')[0];
+  const todayStr=today.toISOString().split('T')[0];
 return`<h2 class="ptitle" style="font-size:20px;margin-bottom:8px">Quand débutes-tu ?</h2>
-<p class="psub" style="margin-bottom:14px">L'app s'ouvrira automatiquement à ta semaine actuelle.</p>
-<input type="date" id="sdInput" class="inp" style="text-align:center;font-size:16px" value="${t}" min="${t}">
+<p class="psub" style="margin-bottom:10px">L'app s'ouvrira automatiquement à ta semaine actuelle.</p>
+<div class="box-info" style="margin-bottom:10px">📅 <strong>Conseillé : commence un lundi.</strong> Les semaines du programme débutent le lundi — ça simplifie le suivi !</div>
+<input type="date" id="sdInput" class="inp" style="text-align:center;font-size:16px" value="${defVal}" min="${todayStr}" onchange="warnIfNotMonday(this)">
+<div class="err" id="mondayWarn" style="text-align:center;color:#92700a;min-height:18px"></div>
 <div class="wiz-nav"><button class="btn" onclick="wizB()" style="flex:.4">← Retour</button>
 <button class="btn primary" style="flex:1" onclick="finishWiz()">C'est parti ! 🏃</button></div>
 <button class="btn ghost" onclick="skipDate()">Configurer la date plus tard</button>`;}
+function warnIfNotMonday(input){
+  const d=new Date(input.value+'T12:00:00');
+  const dow=d.getDay();
+  const warn=document.getElementById('mondayWarn');
+  if(!warn)return;
+  if(dow!==1){
+    const jours=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+    warn.textContent=`⚠️ Tu as choisi un ${jours[dow]}. Recommandé : commence un lundi pour un suivi optimal.`;
+  } else {
+    warn.textContent='';
+  }
+}
 function wizB(){if(wizStep>0){wizStep--;renderWiz();}}
 function wizN(){
   if(wizStep===2&&wizData.preferredDays.length!==wizData.daysPerWeek){document.getElementById('dayErr').textContent=`Sélectionne ${wizData.daysPerWeek} jours.`;return;}
@@ -1130,12 +1269,18 @@ function skipDate(){Object.assign(auth,{program:wizData.program,daysPerWeek:wizD
 // ═══════════════════════════════════════════════════
 function calcCW(){
   if(!auth?.startDate)return null;
-  const diff=Math.floor((new Date()-new Date(auth.startDate))/(7*86400000));
+  const diff=Math.floor((Date.now()-new Date(auth.startDate).getTime())/(7*86400000));
+  if(diff<0)return null; // programme pas encore commencé
   return Math.min(Math.max(diff+1,1),18);
+}
+function daysUntilStart(){
+  if(!auth?.startDate)return null;
+  const diff=Math.ceil((new Date(auth.startDate).getTime()-Date.now())/86400000);
+  return diff>0?diff:null;
 }
 function isProgramDone(){
   if(!auth?.startDate)return false;
-  const diff=Math.floor((new Date()-new Date(auth.startDate))/(7*86400000));
+  const diff=Math.floor((Date.now()-new Date(auth.startDate).getTime())/(7*86400000));
   return diff+1>18;
 }
 function launchApp(){
@@ -1144,8 +1289,12 @@ function launchApp(){
   updateHeaderUI();
   const cw=calcCW();if(cw)CW=cw;
   applyTheme(localStorage.getItem(K.T)||'light');
+  // Activer le swipe-to-close sur toutes les bottom sheets
+  initSwipeClose('sheet',closeModal);
+  initSwipeClose('schedSheet',closeReschedule);
+  initSwipeClose('profSheet',closeProfile);
   goScreen(0);
-  fetchData().then(()=>{renderAll();checkMissed();checkNotif();});
+  fetchData().then(()=>{renderAll();checkMissed();checkNotif();checkAchievements();});
   syncPending();
 }
 function updateHeaderUI(){
@@ -1193,8 +1342,37 @@ function renderDash(){
   const prog=auth?.program||'5km';const dpw=auth?.daysPerWeek||5;const pref=auth?.preferredDays||[];
   const cw=calcCW()||1;
   const hour=new Date().getHours();
-  document.getElementById('dashGreeting').textContent=`${hour<12?'Bonjour':hour<17?'Bon après-midi':'Bonsoir'}, ${auth?.pseudo||''} !`;
-  document.getElementById('dashSub').textContent=isProgramDone()?`🏁 Programme ${prog.toUpperCase()} terminé — Félicitations !`:`Semaine ${cw}/18 · Programme ${prog.toUpperCase()}`;
+  const salut=hour<12?'Bonjour':hour<17?'Bon après-midi':'Bonsoir';
+  const prenom=auth?.pseudo||'';
+  const todayDow=(new Date().getDay()+6)%7;
+
+  // Message contextuel (sched calculé une seule fois après la garde startDate)
+  const weekDone=wDone(prog,cw);const weekTotal=wTotal(prog,cw);
+  const allWeekDone=weekTotal>0&&weekDone===weekTotal;
+  // Calcul du sched pour le message contextuel (uniquement si programme actif)
+  let todayDone=false;
+  if(auth?.startDate&&!daysUntilStart()){
+    const schedCtx=getSchedule(prog,cw,pref,dpw);
+    const todaySess=schedCtx[todayDow];
+    todayDone=!!(todaySess&&!todaySess.movedAway&&todaySess.s?.type!=='r'&&gs(cw,todayDow)?.completed);
+  }
+
+  let greeting=`${salut}, ${prenom} !`;
+  let sub=isProgramDone()?`🏁 Programme ${prog.toUpperCase()} terminé — Félicitations !`:`Semaine ${cw}/18 · Programme ${prog.toUpperCase()}`;
+  if(isProgramDone()){
+    greeting=`Bravo ${prenom} ! 🏆`;
+  } else if(allWeekDone){
+    greeting=`Semaine ${cw} complète, ${prenom} ! 🎉`;
+    sub='Tu peux souffler — tu l\'as méritée.';
+  } else if(todayDone){
+    greeting=`Bien joué aujourd\'hui, ${prenom} ! 💪`;
+    sub=`Séance du jour complétée · Sem. ${cw}/18`;
+  } else if(weekDone===0&&weekTotal>0&&cw>1){
+    greeting=`${salut}, ${prenom} !`;
+    sub='Aucune séance encore cette semaine — on y va ? 🏃';
+  }
+  document.getElementById('dashGreeting').textContent=greeting;
+  document.getElementById('dashSub').textContent=sub;
 
   // Nudge si pas de date de début
   const nc=document.getElementById('nextCard');
@@ -1212,15 +1390,44 @@ function renderDash(){
     document.getElementById('missedCard').innerHTML='';
     return;
   }
-  // Next session today or upcoming
+
+  // Programme pas encore commencé (date future)
+  const daysLeft=daysUntilStart();
+  if(daysLeft!==null){
+    const startFmt=new Date(auth.startDate).toLocaleDateString('fr-CA',{weekday:'long',day:'numeric',month:'long'});
+    nc.innerHTML=`<div class="next-card" style="background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(168,85,247,.05));border-color:rgba(59,130,246,.25)">
+      <div class="next-lbl" style="color:var(--blue)">PROGRAMME À VENIR</div>
+      <div class="next-title">Départ dans ${daysLeft} jour${daysLeft>1?'s':''} !</div>
+      <div class="next-desc">Ton programme commence le <strong>${startFmt}</strong>.<br>En attendant, reste actif·ve à ton rythme.</div>
+      <div class="next-meta" style="margin-top:12px">
+        <button class="next-btn" onclick="goScreen(1)">Voir la semaine 1 →</button>
+      </div>
+    </div>`;
+    document.getElementById('weekSummary').innerHTML='';
+    document.getElementById('recentList').innerHTML='';
+    document.getElementById('missedCard').innerHTML='';
+    return;
+  }
+
+  // Next session today or upcoming — avec date réelle
   const sched=getSchedule(prog,cw,pref,dpw);
-  const todayDow=(new Date().getDay()+6)%7;
-  let nextS=null,nextDay='',nextDow=-1;
-  for(let d=todayDow;d<7;d++){const it=sched[d];if(it?.s?.type&&it.s.type!=='r'&&!it.optional&&!it.movedAway){nextS=it.s;nextDay=DNAMES[d];nextDow=d;break;}}
+  let nextS=null,nextDay='',nextDow=-1,nextDate=null;
+  for(let d=todayDow;d<7;d++){
+    const it=sched[d];
+    if(it?.s?.type&&it.s.type!=='r'&&!it.optional&&!it.movedAway){
+      nextS=it.s;nextDay=DNAMES[d];nextDow=d;
+      // Calculer la date réelle de ce jour
+      const today=new Date();today.setHours(0,0,0,0);
+      const diff=d-todayDow;
+      const nd=new Date(today);nd.setDate(today.getDate()+diff);
+      nextDate=nd.toLocaleDateString('fr-CA',{day:'numeric',month:'long'});
+      break;
+    }
+  }
   if(nextS){
     const info=sInfo(nextS);const isToday=nextDow===todayDow;
     nc.innerHTML=`<div class="next-card">
-      <div class="next-lbl">${isToday?'AUJOURD\'HUI':'PROCHAINE SÉANCE — '+nextDay.toUpperCase()}</div>
+      <div class="next-lbl">${isToday?'AUJOURD\'HUI':'PROCHAINE SÉANCE — '+nextDay.toUpperCase()+(nextDate?' · '+nextDate:'')}</div>
       <div class="next-title">${info.title}</div>
       <div class="next-desc">${info.desc}</div>
       <div class="next-meta">
@@ -1256,6 +1463,40 @@ function renderDash(){
       ${feel?`<div style="font-size:16px">${feel}</div>`:''}
     </div>`;
   }).join('');
+
+  // Bilan hebdo — proposer en fin de semaine (jeudi-dimanche)
+  renderWeekMood(prog,cw);
+}
+
+function renderWeekMood(prog,cw){
+  const mc=document.getElementById('weekMoodCard');
+  if(!mc)return;
+  const todayDow=(new Date().getDay()+6)%7; // 0=lun, 6=dim
+  const weekKey=`weekmood_w${cw}`;
+  const already=localStorage.getItem(weekKey);
+  // Afficher uniquement jeu-ven-sam-dim (3-6) et si pas encore rempli
+  if(todayDow<3||already){mc.innerHTML='';return;}
+  const done=wDone(prog,cw);const total=wTotal(prog,cw);
+  if(total===0){mc.innerHTML='';return;}
+  mc.innerHTML=`<div class="next-card" style="background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(59,130,246,.05));border-color:rgba(168,85,247,.25);margin-top:0">
+    <div class="next-lbl" style="color:var(--purple)">BILAN SEMAINE ${cw}</div>
+    <div class="next-title" style="font-size:16px">Comment s'est passée ta semaine ?</div>
+    <div class="next-desc">${done}/${total} séances complétées · Comment te sens-tu ?</div>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:center">
+      ${['😓 Épuisé','😐 Correct','💪 En forme','🚀 Au top'].map((l,i)=>`
+        <button onclick="saveWeekMood(${cw},${i+1})" style="flex:1;padding:8px 4px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:700;cursor:pointer;color:var(--text);-webkit-tap-highlight-color:transparent">${l}</button>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+function saveWeekMood(cw,level){
+  localStorage.setItem(`weekmood_w${cw}`,level);
+  const mc=document.getElementById('weekMoodCard');
+  const labels=['','😓 Épuisé·e','😐 Correct','💪 En forme','🚀 Au top'];
+  if(mc)mc.innerHTML=`<div style="text-align:center;padding:10px;color:var(--muted);font-size:13px">Bilan sem. ${cw} : ${labels[level]} — enregistré ✓</div>`;
+  // Suggestion si épuisé
+  if(level===1){setTimeout(()=>toast('⚠️ Tu sembles fatigué·e — pense à bien récupérer avant la semaine prochaine.',4000),500);}
 }
 
 // ═══════════════════════════════════════════════════
@@ -1280,12 +1521,29 @@ function renderProg(dir){
   const isRace=sched.some(x=>x.s?.type==='co');
   document.getElementById('raceBanner').style.display=isRace?'':'none';
   if(isRace)document.getElementById('raceTitle').textContent=`SEMAINE DE COURSE — ${prog.toUpperCase()} !`;
-  // Week dots
+  // Week dots — passé=gris, actuel=phase color, futur=léger
   const wd=document.getElementById('wDots');wd.innerHTML='';
+  const realCw=calcCW()||1;
   PHASES_MAP[prog]?.forEach(ph=>ph.weeks.forEach(w=>{
-    const done=wDone(prog,w);const b=document.createElement('button');
-    b.className='wk-dot'+(w===CW?' on':'');b.textContent=w;b.style.background=w===CW?ph.color:'';
-    if(done>0&&w!==CW){const dd=document.createElement('div');dd.className='dd';b.appendChild(dd);}
+    const done=wDone(prog,w);const partial=wPartial(prog,w);
+    const isCurrent=w===CW;const isRealCurrent=w===realCw;
+    const isPast=w<realCw;const isFuture=w>realCw;
+    const b=document.createElement('button');
+    b.className='wk-dot'+(isCurrent?' on':'');
+    b.textContent=w;
+    if(isCurrent){
+      b.style.background=ph.color;b.style.color='white';
+    } else if(isPast&&done>0){
+      b.style.background=ph.color+'55';b.style.color=ph.color;
+    } else if(isPast){
+      b.style.background='var(--border)';b.style.opacity='.5';
+    } else if(isFuture){
+      b.style.opacity='.55';
+    }
+    // Indicateur de complétion
+    if(done>0&&!isCurrent){const dd=document.createElement('div');dd.className='dd';dd.style.background=ph.color;b.appendChild(dd);}
+    else if(partial>0&&!isCurrent){const dd=document.createElement('div');dd.className='dd';dd.style.background='var(--yellow)';b.appendChild(dd);}
+    b.title=`Semaine ${w}${isRealCurrent?' (actuelle)':isPast?' (passée)':' (à venir)'}`;
     b.onclick=()=>{CW=w;renderProg();};wd.appendChild(b);
   }));
   wd.querySelector('.on')?.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
@@ -1303,41 +1561,71 @@ function renderProg(dir){
     grid.classList.add(dir==='right'?'slide-right':'slide-left');
   }
   sched.forEach((item,i)=>{
-    const{s,req,optional,movedAway,movedFrom}=item;
+    const{s,req,optional,movedAway,movedFrom,stackedSession}=item;
+
+    // Carte origine (séance déplacée ailleurs) → repos neutre, sans explication
+    if(movedAway){
+      const card=document.createElement('div');
+      card.className='day-card repos';
+      card.dataset.day=i;
+      card.innerHTML=`
+        <div class="d-acc ar"></div>
+        <div class="d-body">
+          <div class="d-namecol"><div class="d-name">${DNAMES[i]}</div></div>
+          <div class="d-info"><div class="d-title" style="color:var(--muted)">Repos</div></div>
+          <div class="d-right"><span class="badge drest">Repos</span></div>
+        </div>`;
+      initDrop(card,i);
+      grid.appendChild(card);
+      return;
+    }
+
     const info=sInfo(s);const isRest=s.type==='r';const isRace=s.type==='co';
-    const sess=gs(CW,i);const done=sess?.completed;const feel=sess?.feeling||0;
-    const origSess=gs(CW,i);const wasMoved=origSess?.movedTo!==undefined&&origSess?.movedTo!==null&&origSess?.movedTo!==i;
+    const sess=gs(CW,i);const done=sess?.completed;const partial=sess?.partial&&!done;const feel=sess?.feeling||0;
+    const stackedInfo=stackedSession?sInfo(stackedSession.s):null;
     const card=document.createElement('div');
     let cls='day-card';
-    if(isRest&&!movedFrom&&!wasMoved)cls+=' repos';
+    if(isRest&&!stackedSession)cls+=' repos';
     if(done)cls+=' done';
     if(optional&&!isRest)cls+=' optional';
-    if(wasMoved)cls+=' moved-away';
-    if(!isRest||movedFrom)cls+=' clickable';
+    if(!isRest||stackedSession)cls+=' clickable';
     if(isRace)card.style.cssText='border-color:rgba(249,115,22,.4);background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(239,68,68,.06))';
-    const hasSched=!isRest&&!isRace&&!wasMoved;
+    const hasSched=!isRest&&!isRace;
     card.className=cls;
     card.dataset.day=i;
+
     card.innerHTML=`
       <div class="d-acc ${info.ac}"></div>
-      <div class="d-body" ${(!isRest||movedFrom)?`onclick="openModal(${i})"`:''}> 
-        <div class="d-namecol"><div class="d-name">${DNAMES[i]}</div></div>
-        <div class="d-info">
-          <div class="d-title" ${isRace?'style="color:var(--orange)"':''}>${info.title}</div>
-          ${wasMoved
-            ? `<div class="d-desc" style="color:var(--muted);font-style:italic">↪ Déplacée → ${DNAMES[origSess.movedTo]}</div>`
-            : info.desc?`<div class="d-desc">${movedFrom!==null&&movedFrom!==undefined?'↩ Depuis '+DNAMES[movedFrom]+' · '+info.desc:info.desc}</div>`:''
-          }
+      <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+        <div class="d-body" ${(!isRest||stackedSession)?`onclick="openModal(${i})"`:''}> 
+          <div class="d-namecol"><div class="d-name">${DNAMES[i]}</div></div>
+          <div class="d-info">
+            <div class="d-title" ${isRace?'style="color:var(--orange)"':''}>${info.title}</div>
+            ${info.desc?`<div class="d-desc">${info.desc}</div>`:''}
+          </div>
+          <div class="d-right">
+            ${optional&&!isRest?`<span style="font-size:9px;color:var(--muted);font-style:italic">optionnel</span>`:`<span class="badge ${info.cls}">${info.badge}</span>`}
+            ${info.dur?`<span class="dur">${info.dur}</span>`:''}
+            ${feel?`<span class="feel-mini">${['','😓','😕','😐','😊','🏆'][feel]}</span>`:''}
+          </div>
         </div>
-        <div class="d-right">
-          ${wasMoved?'':optional&&!isRest?`<span style="font-size:9px;color:var(--muted);font-style:italic">optionnel</span>`:`<span class="badge ${info.cls}">${info.badge}</span>`}
-          ${!wasMoved&&info.dur?`<span class="dur">${info.dur}</span>`:''}
-          ${feel&&!wasMoved?`<span class="feel-mini">${['','😓','😕','😐','😊','🏆'][feel]}</span>`:''}
-        </div>
+        ${stackedSession&&stackedInfo?`
+        <div style="border-top:1px dashed var(--border);margin:0 11px"></div>
+        <div class="d-body" style="opacity:.85;padding-top:6px;padding-bottom:6px">
+          <div class="d-namecol"><div class="d-name" style="font-size:9px;color:var(--orange)">+1</div></div>
+          <div class="d-info">
+            <div class="d-title" style="font-size:11px">${stackedInfo.title}</div>
+            ${stackedInfo.desc?`<div class="d-desc" style="font-size:10px">${stackedInfo.desc}</div>`:''}
+          </div>
+          <div class="d-right">
+            <span class="badge ${stackedInfo.cls}" style="font-size:8px">${stackedInfo.badge}</span>
+            ${stackedInfo.dur?`<span class="dur" style="font-size:9px">${stackedInfo.dur}</span>`:''}
+          </div>
+        </div>`:''}
       </div>
       <div class="d-actions">
         ${hasSched?`<button class="sched-btn" title="Glisser pour déplacer" style="cursor:grab;touch-action:none">⠿</button>`:''}
-        ${!isRest&&!isRace&&!wasMoved?`<button class="chk ${done?'done':'undone'}" onclick="toggleDone(event,${CW},${i})">${done?'✅':'⭕'}</button>`:''}
+        ${!isRest&&!isRace?`<button class="chk ${done?'done':partial?'partial':'undone'}" onclick="toggleDone(event,${CW},${i})">${done?'✅':partial?'🔶':'⭕'}</button>`:''}
       </div>`;
     // Drag source — only real sessions that aren't races
     if(hasSched){
@@ -1352,24 +1640,41 @@ function chWeek(d){const n=CW+d;if(n>=1&&n<=18){CW=n;renderProg(d>0?'right':'lef
 
 function toggleDone(e,w,d){
   e.stopPropagation();
-  // Avertissement si semaine future
   const cw=calcCW()||1;
-  if(w>cw&&!sessions[sk(w,d)]?.completed){
-    if(!confirm(`⚠️ Cette séance est dans le futur (semaine ${w}, tu en es à la semaine ${cw}).\n\nLa marquer comme complétée quand même ?`))return;
-  }
   const k=sk(w,d);
-  const wasDone=sessions[k]?.completed||false;
-  pushUndo(wasDone?'Séance déscochée':'Séance complétée',sessions);
+  const cur=sessions[k];
+  // Cycle : ⭕ undone → 🔶 partial → ✅ done → ⭕ undone
+  const wasDone=cur?.completed||false;
+  const wasPartial=cur?.partial&&!wasDone;
+  // Vérifier si séance future avant de compléter
+  if(!wasDone&&!wasPartial&&w>cw){
+    if(!confirm(`⚠️ Cette séance est dans le futur (semaine ${w}).\n\nLa marquer quand même ?`))return;
+  }
+  pushUndo(wasDone?'Séance déscochée':wasPartial?'Séance complétée':'Séance partielle',sessions);
   if(!sessions[k])sessions[k]={};
-  sessions[k].completed=!sessions[k].completed;
+  if(!wasDone&&!wasPartial){
+    // undone → partial
+    sessions[k].partial=true;sessions[k].completed=false;
+    navigator.vibrate&&navigator.vibrate(20);
+  } else if(wasPartial){
+    // partial → done
+    sessions[k].partial=false;sessions[k].completed=true;
+    navigator.vibrate&&navigator.vibrate([30,20,60]);
+  } else {
+    // done → undone
+    sessions[k].partial=false;sessions[k].completed=false;
+    navigator.vibrate&&navigator.vibrate(15);
+  }
   sessions[k].timestamp=new Date().toISOString();
   if(!pending.includes(k))pending.push(k);
   saveL();renderProg();syncPending();
-  if(sessions[k].completed){
-    navigator.vibrate&&navigator.vibrate([30,20,60]);
-  } else {
-    navigator.vibrate&&navigator.vibrate(15);
-  }
+  // Animate the check button after re-render
+  requestAnimationFrame(()=>{
+    const chkBtn=document.querySelector(`.day-card[data-day="${d}"] .chk`);
+    if(chkBtn)animateCheck(chkBtn);
+  });
+  // Achievements check
+  checkAchievements();
   const prog=auth?.program||'5km';
   const done=wDone(prog,w);const tot=wTotal(prog,w);
   if(sessions[k].completed&&done===tot&&tot>0){
@@ -1453,30 +1758,130 @@ function closeReschedule(){
 function renderStats(){
   const prog=auth?.program||'5km';const{done,total,estKm,streak}=computeStats();
   document.getElementById('streakCard').innerHTML=`<div class="streak-num">${streak}</div><div class="streak-info"><strong>Semaine${streak!==1?'s':''} consécutive${streak!==1?'s':''}</strong><p>Continue — la régularité est tout ! 🔥</p></div>`;
+  const partialCount=wPartialTotal();
   document.getElementById('statGrid').innerHTML=`
     <div class="stat-card"><div class="stat-val">${done}</div><div class="stat-lbl">Séances complétées</div><div class="stat-sub">sur ${total} planifiées</div></div>
     <div class="stat-card"><div class="stat-val">${estKm}</div><div class="stat-lbl">km estimés</div><div class="stat-sub">à ~10 km/h</div></div>
     <div class="stat-card"><div class="stat-val">${total>0?Math.round(done/total*100):0}%</div><div class="stat-lbl">Taux de complétion</div></div>
-    <div class="stat-card"><div class="stat-val">${calcCW()||'—'}/18</div><div class="stat-lbl">Semaine actuelle</div></div>`;
+    <div class="stat-card"><div class="stat-val">${partialCount>0?`<span style="font-size:22px">${partialCount}</span><span style="font-size:14px"> 🔶</span>`:calcCW()||'—'}</div><div class="stat-lbl">${partialCount>0?'Séances partielles':'Semaine actuelle'}</div></div>`;
+  // Bar chart — 4 semaines glissantes centrées sur la semaine actuelle
+  const cw=calcCW()||1;
   const bc=document.getElementById('barChart');bc.innerHTML='';
-  const maxT=Math.max(1,...Array.from({length:18},(_,i)=>wTotal(prog,i+1)));
-  for(let w=1;w<=18;w++){const d=wDone(prog,w);const t=wTotal(prog,w);
+  // Afficher les sem. autour de la semaine actuelle (2 avant, 1 après, ou ajuster aux bords)
+  let chartStart=Math.max(1,Math.min(cw-2,18-7));
+  let chartEnd=Math.min(18,chartStart+7);
+  const visibleWeeks=Array.from({length:chartEnd-chartStart+1},(_,i)=>chartStart+i);
+  const maxT=Math.max(1,...visibleWeeks.map(w=>wTotal(prog,w)));
+  visibleWeeks.forEach(w=>{
+    const d=wDone(prog,w);const t=wTotal(prog,w);const p=wPartial(prog,w);
+    const isCurrent=w===cw;
     const col=document.createElement('div');col.className='bar-col';
-    col.innerHTML=`<div class="bar-fill ${d===t&&t>0?'done':d>0?'partial':''}" style="height:${Math.max(d/maxT*100,3)}%"></div><div class="bar-lbl">${w}</div>`;
-    bc.appendChild(col);}
-  const cw=calcCW()||0;
-  const achs=[
-    {i:'🏃',t:'Premier pas',d:'Compléter ta 1ère séance',ok:done>=1},
-    {i:'🔥',t:'En feu !',d:'3 semaines consécutives',ok:streak>=3},
-    {i:'💪',t:'Mi-chemin',d:'Semaine 9 atteinte',ok:cw>=9},
-    {i:'⚡',t:'Intervalles',d:'10 séances EPI complétées',ok:countType('ep')>=10},
-    {i:'🎯',t:'Régularité',d:'20 séances complétées',ok:done>=20},
-    {i:'🏆',t:'Finisseur',d:'Compléter le programme',ok:done>=50},
-  ];
+    col.style.position='relative';
+    col.innerHTML=`
+      <div style="position:relative;width:100%;height:${Math.max((d+p*0.5)/Math.max(maxT,1)*100,t>0?4:0)}%;border-radius:3px 3px 0 0;overflow:hidden;min-height:${t>0?4:0}px">
+        <div style="position:absolute;bottom:0;left:0;right:0;height:${d>0?d/(d+p*0.5)*100:0}%;background:${isCurrent?'var(--orange)':'var(--blue)'};opacity:${isCurrent?1:.7}"></div>
+        ${p>0?`<div style="position:absolute;bottom:0;left:0;right:0;height:${p*0.5/(d+p*0.5)*100}%;background:var(--yellow);opacity:.8"></div>`:''}
+      </div>
+      <div class="bar-lbl" style="font-weight:${isCurrent?'700':'400'};color:${isCurrent?'var(--orange)':'var(--muted)'}">${w}</div>
+      ${isCurrent?`<div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--orange);font-weight:700;white-space:nowrap">← ici</div>`:''}`;
+    bc.appendChild(col);
+  });
+  // Navigation du chart si >8 semaines visibles souhaitées
+  const chartNav=document.getElementById('barChartNav');
+  if(chartNav){
+    chartNav.innerHTML=`<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px">Semaines ${chartStart}–${chartEnd} <span style="color:var(--orange)">● bleu=complété · 🟡=partiel</span></div>`;
+  }
+  const achs=getAchievements();
   document.getElementById('achList').innerHTML=achs.map(a=>`<div class="ach-item ${a.ok?'':'locked'}">
     <div class="ach-icon">${a.ok?a.i:'🔒'}</div><div class="ach-info"><div class="ach-t">${a.t}</div><div class="ach-d">${a.d}</div></div>
     ${a.ok?'<span style="color:#15803d;font-size:18px">✓</span>':''}</div>`).join('');
+
+  // Journal history — toutes les séances avec note ou ressenti, récentes d'abord
+  const jh=document.getElementById('journalHistory');
+  if(jh){
+    const entries=[];
+    for(let w=1;w<=18;w++){
+      for(let d=0;d<7;d++){
+        const sess=gs(w,d);
+        if(sess&&(sess.note||sess.comment||sess.feeling)){
+          const prog2=auth?.program||'5km';
+          const s=PROGS[prog2]?.[w]?.[d];
+          const info=s?sInfo(s):{title:'Séance',desc:''};
+          entries.push({w,d,sess,info,ts:sess.timestamp?new Date(sess.timestamp):new Date(0)});
+        }
+      }
+    }
+    entries.sort((a,b)=>b.ts-a.ts);
+    if(!entries.length){
+      jh.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:13px;padding:14px">Aucune note pour l'instant.<br>Ajoute des notes depuis tes séances !</div>`;
+    } else {
+      jh.innerHTML=entries.map(e=>{
+        const feel=e.sess.feeling?['','😓','😕','😐','😊','🏆'][e.sess.feeling]:'';
+        const when=e.ts.toLocaleDateString('fr-CA',{weekday:'short',day:'numeric',month:'short'});
+        const status=e.sess.completed?'✅':e.sess.partial?'🔶':'';
+        return`<div class="ach-item" style="flex-direction:column;align-items:flex-start;gap:5px;cursor:pointer" onclick="goScreen(1);CW=${e.w};renderProg()">
+          <div style="display:flex;align-items:center;gap:8px;width:100%">
+            <div style="font-size:16px">${status||'📝'}</div>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:700;color:var(--text)">${e.info.title}</div>
+              <div style="font-size:10px;color:var(--muted)">Sem. ${e.w} · ${DNAMES[e.d]} · ${when} ${feel}</div>
+            </div>
+          </div>
+          ${e.sess.note?`<div style="font-size:11px;color:var(--text);line-height:1.4;padding-left:24px">${e.sess.note.substring(0,120)}${e.sess.note.length>120?'…':''}</div>`:''}
+          ${e.sess.comment?`<div style="font-size:11px;color:var(--muted);font-style:italic;line-height:1.4;padding-left:24px">${e.sess.comment.substring(0,80)}${e.sess.comment.length>80?'…':''}</div>`:''}
+        </div>`;
+      }).join('');
+    }
+  }
 }
+function getAchievements(){
+  const prog=auth?.program||'5km';
+  const{done,streak}=computeStats();
+  const cw=calcCW()||0;
+  return[
+    {id:'first',  i:'🏃',t:'Premier pas',    d:'Compléter ta 1ère séance',       ok:done>=1},
+    {id:'fire',   i:'🔥',t:'En feu !',        d:'3 semaines consécutives',         ok:streak>=3},
+    {id:'half',   i:'💪',t:'Mi-chemin',       d:'Semaine 9 atteinte',              ok:cw>=9},
+    {id:'epi',    i:'⚡',t:'Intervalles',     d:'10 séances EPI complétées',       ok:countType('ep')>=10},
+    {id:'reg',    i:'🎯',t:'Régularité',      d:'20 séances complétées',           ok:done>=20},
+    {id:'finish', i:'🏆',t:'Finisseur',       d:'Programme terminé (50 séances)',  ok:done>=50},
+    {id:'partial',i:'🔶',t:'Honnête',         d:'5 séances marquées partiellement',ok:countPartial()>=5},
+    {id:'streak5',i:'⭐',t:'Invaincu',        d:'5 semaines consécutives',         ok:streak>=5},
+  ];
+}
+function countPartial(){
+  const prog=auth?.program||'5km';let n=0;
+  for(let w=1;w<=18;w++)(PROGS[prog]?.[w]||[]).forEach((_,i)=>{if(gs(w,i)?.partial)n++;});
+  return n;
+}
+// Vérifier si de nouveaux succès se débloquent et notifier
+let _achDebounceTimer=null;
+function checkAchievements(){
+  clearTimeout(_achDebounceTimer);
+  _achDebounceTimer=setTimeout(_doCheckAchievements,600);
+}
+function _doCheckAchievements(){
+  const unlocked=JSON.parse(localStorage.getItem('p5k_ach')||'[]');
+  const achs=getAchievements();
+  let newUnlocks=[];
+  achs.forEach(a=>{
+    if(a.ok&&!unlocked.includes(a.id)){
+      newUnlocks.push(a);
+      unlocked.push(a.id);
+    }
+  });
+  if(newUnlocks.length){
+    localStorage.setItem('p5k_ach',JSON.stringify(unlocked));
+    // Notifier chaque nouveau succès avec un délai
+    newUnlocks.forEach((a,i)=>{
+      setTimeout(()=>{
+        fireConfetti();
+        toast(`${a.i} Succès débloqué : ${a.t} — ${a.d}`,4000);
+      },i*1200);
+    });
+  }
+}
+
 function countType(type){const prog=auth?.program||'5km';let n=0;for(let w=1;w<=18;w++)(PROGS[prog]?.[w]||[]).forEach((s,i)=>{if(s.type===type&&gs(w,i)?.completed)n++;});return n;}
 
 // ═══════════════════════════════════════════════════
@@ -1536,10 +1941,13 @@ function openProfile(){
         ${DSHORT.map((d,i)=>`<button class="dp-btn ${pref.includes(i)?'sel':''}" onclick="togPDay(${i})">${d}</button>`).join('')}
       </div>
       <div style="font-size:11px;color:var(--muted);text-align:center"><span id="pDpwCount">${pref.length}</span>/${dpw} jours sélectionnés</div>
+      <div id="pDayConsecWarn" style="font-size:11px;color:#92700a;text-align:center;min-height:16px;margin-top:3px"></div>
     </div>
     <div class="prof-section">
       <span class="prof-label">Date de début du programme</span>
-      <input type="date" id="pDateInput" class="inp" value="${auth?.startDate||''}" style="margin-bottom:0">
+      <div class="box-info" style="margin-bottom:8px;font-size:11px">📅 Recommandé : commence un lundi.</div>
+      <input type="date" id="pDateInput" class="inp" value="${auth?.startDate||''}" style="margin-bottom:2px" onchange="warnIfNotMondayProf(this)">
+      <div style="font-size:11px;color:#92700a;min-height:16px" id="profMonWarn"></div>
     </div>
     <div class="prof-section">
       <span class="prof-label">Changer le NIP</span>
@@ -1550,6 +1958,10 @@ function openProfile(){
     </div>
     <button class="btn primary" onclick="saveProfile()" style="margin-top:4px">💾 Sauvegarder</button>
     <button class="btn danger" onclick="logout()" style="margin-top:0">🚪 Déconnexion</button>
+    <button class="btn" onclick="openDeleteModal()" style="margin-top:0;color:var(--red);border-color:rgba(239,68,68,.2);font-size:12px">🗑 Supprimer mon compte</button>
+    <div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
+    <button class="btn" style="margin:0;color:var(--red);border-color:rgba(239,68,68,.2);font-size:13px" onclick="openDelModal()">🗑 Supprimer mon compte…</button>
+    <button class="btn" onclick="closeProfile();openDelModal()" style="margin-top:0;color:var(--red);border-color:rgba(239,68,68,.2);font-size:12px">🗑 Supprimer mon compte…</button>
   `;
   document.getElementById('profOverlay').classList.add('open');
   document.getElementById('profSheet').classList.add('open');
@@ -1558,6 +1970,15 @@ function openProfile(){
   setTimeout(refreshDpwButtons,0);
 }
 
+function warnIfNotMondayProf(input){
+  if(!input?.value)return;
+  const d=new Date(input.value+'T12:00:00');
+  const dow=d.getDay();
+  const warn=document.getElementById('profMonWarn');
+  if(!warn)return;
+  const jours=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  warn.textContent=dow!==1?`⚠️ ${jours[dow]} choisi — un lundi serait idéal.`:'';
+}
 function setPProg(p){
   auth._tmpProg=p;
   document.querySelectorAll('.pseg-opt').forEach(b=>{
@@ -1602,6 +2023,12 @@ function togPDay(i){
   if(idx>-1){if(pDaysTmp.length>1)pDaysTmp.splice(idx,1);}
   else if(pDaysTmp.length<dpw)pDaysTmp.push(i);
   refreshPDayPicker();
+  // Avertir si 3+ jours consécutifs
+  const sorted=[...pDaysTmp].sort((a,b)=>a-b);
+  let consec=1,maxConsec=1;
+  for(let k=1;k<sorted.length;k++){if(sorted[k]===sorted[k-1]+1)consec++;else consec=1;maxConsec=Math.max(maxConsec,consec);}
+  const warn=document.getElementById('pDayConsecWarn');
+  if(warn)warn.textContent=maxConsec>=3?'⚠️ 3 jours consécutifs ou plus — pense à intégrer des jours de récupération !':'';
 }
 function refreshPDayPicker(){
   const dpw=auth._tmpDpw||auth?.daysPerWeek||5;
@@ -1655,22 +2082,52 @@ function closeProfileEv(e){if(e.target===document.getElementById('profOverlay'))
 function checkMissed(){
   const prog=auth?.program||'5km';const cw=calcCW();
   if(!cw||cw<=1){document.getElementById('missedCard').innerHTML='';return;}
-  let missed=0;for(let w=Math.max(1,cw-2);w<cw;w++)if(wDone(prog,w)===0)missed++;
+  let missed=0;for(let w=Math.max(1,cw-2);w<cw;w++)if(wDone(prog,w)===0&&wPartial(prog,w)===0)missed++;
+  const lastWeekDone=wDone(prog,cw-1);const lastWeekTotal=wTotal(prog,cw-1);
+  const lowCompletion=lastWeekTotal>0&&lastWeekDone<Math.ceil(lastWeekTotal/2);
   if(missed>=2){
     document.getElementById('missedCard').innerHTML=`<div class="missed-card">
       <div class="missed-t">⚠️ Semaines manquées détectées</div>
-      <div class="missed-s">Il semble que tu aies manqué ${missed} semaines. Décaler le programme te permettra de rester aligné.</div>
+      <div class="missed-s">Il semble que tu aies manqué ${missed} semaines. Que veux-tu faire ?</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn primary" style="margin:0;flex:1;min-width:120px;padding:10px;font-size:13px" onclick="reschedule()">📅 Décaler le programme</button>
+        <button class="btn" style="margin:0;flex:1;min-width:120px;padding:10px;font-size:13px" onclick="repeatCurrentWeek()">🔁 Répéter la sem. ${cw}</button>
+        <button class="btn" style="margin:0;flex:.4;padding:10px;font-size:13px" onclick="dismissMissed()">Ignorer</button>
+      </div>
+    </div>`;
+  } else if(lowCompletion&&cw>1){
+    document.getElementById('missedCard').innerHTML=`<div class="missed-card" style="background:rgba(234,179,8,.06);border-color:rgba(234,179,8,.2)">
+      <div class="missed-t" style="color:#92700a">💡 Semaine ${cw-1} incomplète (${lastWeekDone}/${lastWeekTotal} séances)</div>
+      <div class="missed-s">Veux-tu répéter cette semaine avant de continuer, ou passer à la suite ?</div>
       <div style="display:flex;gap:8px">
-        <button class="btn primary" style="margin:0;flex:1;padding:10px;font-size:13px" onclick="reschedule()">📅 Décaler</button>
-        <button class="btn" style="margin:0;flex:.5;padding:10px;font-size:13px" onclick="dismissMissed()">Ignorer</button>
+        <button class="btn" style="margin:0;flex:1;padding:10px;font-size:13px" onclick="repeatWeek(${cw-1})">🔁 Répéter sem. ${cw-1}</button>
+        <button class="btn ghost" style="margin:0;flex:.4;padding:10px;font-size:13px" onclick="dismissMissed()">Continuer</button>
       </div>
     </div>`;
   } else document.getElementById('missedCard').innerHTML='';
 }
 function reschedule(){
+  pushUndo('Programme décalé',sessions,auth);
   auth.startDate=new Date().toISOString().split('T')[0];saveA();
   if(navigator.onLine)api({action:'update_profile',userId:auth.userId,token:auth.token,startDate:auth.startDate});
   document.getElementById('missedCard').innerHTML='';toast('📅 Programme décalé à aujourd\'hui !');
+  renderAll();
+}
+function repeatCurrentWeek(){
+  const cw=calcCW()||1;
+  repeatWeek(cw);
+}
+function repeatWeek(w){
+  // Décaler la date de début d'une semaine en arrière = rejouer la semaine w
+  if(!auth?.startDate)return;
+  pushUndo(`Semaine ${w} répétée`,sessions,auth);
+  const d=new Date(auth.startDate);
+  d.setDate(d.getDate()-7);
+  auth.startDate=d.toISOString().split('T')[0];saveA();
+  if(navigator.onLine)api({action:'update_profile',userId:auth.userId,token:auth.token,startDate:auth.startDate});
+  document.getElementById('missedCard').innerHTML='';
+  const newCw=calcCW();if(newCw)CW=newCw;
+  toast(`🔁 Semaine ${w} répétée — bonne chance !`);renderAll();
 }
 function dismissMissed(){document.getElementById('missedCard').innerHTML='';}
 
@@ -1722,7 +2179,45 @@ function closeModal(){
 }
 function buildModal(s,di,e,sess,info){
   let h='';
-  if(info.timer)h+=`<button class="timer-open-btn" onclick="startTimer(${mWeek},${di})">⏱️ Démarrer le minuteur intégré</button>`;
+
+  // Panneau minuteur externe — remplace le bouton "minuteur intégré"
+  if(info.timer){
+    const isEP=s.type==='ep';const isAL=s.type==='al';
+    let wsLabel='',rsLabel='',repsLabel='';
+    if(isEP){
+      wsLabel=s.ws<60?`${s.ws} sec`:`${s.ws/60} min`;
+      rsLabel=s.rs<60?`${s.rs} sec`:`${s.rs/60} min`;
+      repsLabel='∞ cycles';
+    } else if(isAL){
+      wsLabel=`${s.run} min`;
+      rsLabel=`${s.walk} min`;
+      repsLabel=`${s.reps} répétitions`;
+    }
+    // Liens app store — Seconds (iOS) et Interval Timer (Android)
+    const iosUrl='https://apps.apple.com/app/seconds-interval-timer/id363978811';
+    const androidUrl='https://play.google.com/store/apps/details?id=cc.dreamspark.intervaltimer';
+    h+=`<div class="itv-panel">
+      <div class="itv-panel-title">⏱️ Minuteur d'intervalles</div>
+      <p class="itv-panel-sub">Entre ces paramètres dans ton app de minuteur — elle continuera en arrière-plan même écran verrouillé.</p>
+      <div class="itv-grid" style="margin-bottom:10px">
+        <div class="itv-c"><div class="itv-v">${wsLabel}</div><div class="itv-l">Travail</div></div>
+        <div class="itv-c"><div class="itv-v">${rsLabel}</div><div class="itv-l">Récupération</div></div>
+        <div class="itv-c"><div class="itv-v">${repsLabel}</div><div class="itv-l">Cycles</div></div>
+        <div class="itv-c"><div class="itv-v">${s.dur} min</div><div class="itv-l">Total</div></div>
+      </div>
+      <div class="itv-app-links">
+        <a href="${iosUrl}" target="_blank" class="itv-app-btn ios">
+          <span class="itv-app-icon">🍎</span>
+          <div><div class="itv-app-name">Seconds Timer</div><div class="itv-app-store">App Store · iPhone</div></div>
+        </a>
+        <a href="${androidUrl}" target="_blank" class="itv-app-btn android">
+          <span class="itv-app-icon">🤖</span>
+          <div><div class="itv-app-name">Interval Timer</div><div class="itv-app-store">Play Store · Android</div></div>
+        </a>
+      </div>
+    </div>`;
+  }
+
   // Effort
   h+=`<div class="msec"><div class="msec-t">Niveau d'effort</div><div class="edots">`;
   for(let i=1;i<=10;i++){const lit=i<=e.n;const c=lit?(e.n<=4?'#22C55E':e.n<=6?'#EAB308':'#EF4444'):'transparent';
@@ -1730,24 +2225,23 @@ function buildModal(s,di,e,sess,info){
   h+=`<span style="font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;margin-left:6px;color:${e.n<=4?'#15803d':e.n<=6?'#92700a':'#b91c1c'}">${e.n}/10</span></div>
   <div class="edesc"><strong>${e.l}</strong> — ${e.d}</div></div>`;
   // Steps
-  h+=`<div class="msec"><div class="msec-t">Déroulement</div><ul class="steps">${buildSteps(s,e)}</ul>`;
-  if(s.type==='ep'){const ws=s.ws<60?s.ws+' sec':(s.ws/60)+' min';const rs=s.rs<60?s.rs+' sec':(s.rs/60)+' min';
-    h+=`<div class="itv-box"><div class="itv-t">⚙️ Config Interval Timer</div><div class="itv-grid">
-      <div class="itv-c"><div class="itv-v">${ws}</div><div class="itv-l">Travail</div></div>
-      <div class="itv-c"><div class="itv-v">${rs}</div><div class="itv-l">Récupération</div></div>
-      <div class="itv-c"><div class="itv-v">${s.dur}min</div><div class="itv-l">Total</div></div>
-      <div class="itv-c"><div class="itv-v">∞</div><div class="itv-l">Cycles</div></div></div>
-    <div class="beep-info">🔊 <strong>Signaux sonores :</strong> 🟢 <strong>2 bips aigus</strong> = début course · 🔵 <strong>1 bip grave</strong> = récupération · 🎵 <strong>3 bips ascendants</strong> = séance terminée</div></div>`;}
-  h+=`</div>`;
+  h+=`<div class="msec"><div class="msec-t">Déroulement</div><ul class="steps">${buildSteps(s,e)}</ul></div>`;
   // Tips
   h+=`<div class="msec"><div class="msec-t">Conseils</div>`;
   buildTips(s).forEach(t=>h+=`<div class="tip"><div class="tip-i">${t.i}</div><div class="tip-t">${t.t}</div></div>`);
   h+=`</div>`;
   // Share
   h+=`<button class="share-btn" onclick="shareSession(${mWeek},${di})">📤 Partager cette séance</button>`;
-  // Journal
-  h+=`<div class="msec"><div class="msec-t">📝 Mon journal de course</div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Comment s'est passée cette séance ?</p>
+  // Journal — mettre en évidence les notes existantes
+  const hasNote=sess.note||sess.comment||sess.feeling;
+  h+=`<div class="msec" ${hasNote?'style="border-color:rgba(249,115,22,.3);background:linear-gradient(135deg,rgba(249,115,22,.04),rgba(59,130,246,.02))"':''}>
+    <div class="msec-t">📝 Mon journal de course${hasNote?' <span style="color:var(--orange);font-size:9px;letter-spacing:0;font-weight:700">● REMPLI</span>':''}</div>
+    ${hasNote&&(sess.note||sess.comment)?`<div style="background:rgba(249,115,22,.08);border-radius:8px;padding:8px 10px;margin-bottom:10px;border-left:3px solid var(--orange)">
+      ${sess.feeling?`<div style="font-size:20px;margin-bottom:4px">${['','😓','😕','😐','😊','🏆'][sess.feeling]}</div>`:''}
+      ${sess.note?`<div style="font-size:12px;color:var(--text);line-height:1.5;margin-bottom:${sess.comment?'6px':'0'}">${sess.note.replace(/\n/g,'<br>')}</div>`:''}
+      ${sess.comment?`<div style="font-size:11px;color:var(--muted);line-height:1.5;font-style:italic">${sess.comment.replace(/\n/g,'<br>')}</div>`:''}
+    </div>`:''}
+    <p style="font-size:12px;color:var(--muted);margin-bottom:8px">${hasNote?'Modifier ta note :':'Comment s\'est passée cette séance ?'}</p>
     <div class="feel-row">${[1,2,3,4,5].map(f=>`<button class="feel-btn ${sess.feeling==f?'sel':''}" onclick="setFeeling(${mWeek},${di},${f})">${['','😓','😕','😐','😊','🏆'][f]}</button>`).join('')}</div>
     <textarea class="jtxt" id="jNote" placeholder="Notes (ressenti, distance, météo…)">${sess.note||''}</textarea>
     <textarea class="jtxt" id="jCom" placeholder="Commentaire libre (douleurs, fierté, anecdote…)">${sess.comment||''}</textarea>
@@ -1841,54 +2335,287 @@ function shareSession(w,d){
 function fallbackShare(canvas){const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='seance-course.png';a.click();}
 
 // ═══════════════════════════════════════════════════
-// TIMER
+// TIMER — version robuste
+// Bips : pré-programmés dans l'AudioContext dès le départ
+//        → jouent même écran verrouillé sur la plupart des appareils
+// Voix : SpeechSynthesis, volume max, fonctionne par-dessus la musique
+//        → liée à JS, donc suspendue si écran verrouillé manuellement
+// Affichage : horloge murale → toujours exact au retour
 // ═══════════════════════════════════════════════════
 let TS=null,TI=null,aCtx=null;
-function getAC(){if(!aCtx)aCtx=new(window.AudioContext||window.webkitAudioContext)();return aCtx;}
-function beep(f,dur,v=0.65,type='sine'){try{const c=getAC();const o=c.createOscillator();const g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type=type;g.gain.setValueAtTime(v,c.currentTime);g.gain.exponentialRampToValueAtTime(0.01,c.currentTime+dur/1000);o.start(c.currentTime);o.stop(c.currentTime+dur/1000+.05);}catch(e){}}
-// 🟢 2 bips aigus = début course
-function bpWork(){beep(880,120,.7);setTimeout(()=>beep(880,120,.7),200);}
-// 🔵 1 bip grave = récupération
-function bpRest(){beep(440,280,.6);}
-// 3 bips compte à rebours
-function bpCnt(){beep(660,80,.35);}
-// 🎵 3 bips ascendants = terminé
-function bpDone(){beep(523,200,.75);setTimeout(()=>beep(659,200,.75),280);setTimeout(()=>beep(784,450,.8),560);}
+let _wakeLock=null;
+let _voiceOn=localStorage.getItem('timerVoice')==='1';
+let _scheduledBeeps=[]; // références des oscillateurs pré-programmés
 
+// ── AudioContext ─────────────────────────────────
+function getAC(){
+  if(!aCtx)aCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return aCtx;
+}
+
+// Beep immédiat (utilisé pour pause/reprise/voix)
+function beepAt(ac,when,f,dur,v=0.65,type='sine'){
+  try{
+    const o=ac.createOscillator();const g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.frequency.value=f;o.type=type;
+    g.gain.setValueAtTime(v,when);
+    g.gain.exponentialRampToValueAtTime(0.001,when+dur/1000);
+    o.start(when);o.stop(when+dur/1000+.05);
+    return o;
+  }catch(e){return null;}
+}
+function beep(f,dur,v=0.65){
+  const ac=getAC();beepAt(ac,ac.currentTime,f,dur,v);
+}
+
+// ── Pré-programmer TOUS les bips ─────────────────
+// Ceci est la clé : l'AudioContext joue les sons à heure exacte
+// indépendamment de setInterval/JS throttling
+function scheduleAllBeeps(totalSec,ws,rs){
+  const ac=getAC();
+  const now=ac.currentTime+0.1; // léger délai pour laisser le temps à l'AC de démarrer
+  _scheduledBeeps=[];
+  const cycle=ws+rs;
+  // Bip de départ
+  _scheduledBeeps.push(beepAt(ac,now,880,120,.75));
+  _scheduledBeeps.push(beepAt(ac,now+0.22,880,120,.75));
+
+  let t=0;
+  while(t<totalSec){
+    const phaseStart=t;
+    const isWork=(t%cycle)<ws;
+    if(t>0){// les transitions (t=0 déjà géré ci-dessus)
+      if(isWork){
+        // 2 bips aigus = course
+        _scheduledBeeps.push(beepAt(ac,now+t,880,120,.75));
+        _scheduledBeeps.push(beepAt(ac,now+t+0.22,880,120,.75));
+      } else {
+        // 1 bip grave = récup
+        _scheduledBeeps.push(beepAt(ac,now+t,440,300,.65));
+      }
+    }
+    // Compte à rebours 3-2-1 avant chaque transition
+    const nextTransition=isWork?ws-(t%cycle):cycle-(t%cycle);
+    const cntBase=t+nextTransition-3;
+    if(cntBase>0&&cntBase<totalSec){
+      _scheduledBeeps.push(beepAt(ac,now+cntBase,660,80,.4));
+      _scheduledBeeps.push(beepAt(ac,now+cntBase+1,660,80,.4));
+      _scheduledBeeps.push(beepAt(ac,now+cntBase+2,660,80,.4));
+    }
+    t+=nextTransition;
+  }
+  // 3 bips ascendants = fin
+  const endT=now+totalSec;
+  _scheduledBeeps.push(beepAt(ac,endT,523,200,.8));
+  _scheduledBeeps.push(beepAt(ac,endT+0.3,659,200,.8));
+  _scheduledBeeps.push(beepAt(ac,endT+0.6,784,450,.85));
+}
+
+function cancelScheduledBeeps(){
+  const now=getAC().currentTime;
+  _scheduledBeeps.forEach(o=>{try{if(o)o.stop(now);}catch(e){}});
+  _scheduledBeeps=[];
+}
+
+// ── Wake Lock ─────────────────────────────────────
+async function _acquireWakeLock(){
+  if(!('wakeLock' in navigator))return;
+  try{_wakeLock=await navigator.wakeLock.request('screen');}catch(e){}
+}
+function _releaseWakeLock(){
+  if(_wakeLock){_wakeLock.release().catch(()=>{});_wakeLock=null;}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&TS&&!TS.paused)_acquireWakeLock();
+});
+
+// ── Synthèse vocale — volume max, par-dessus la musique ──
+function speak(text){
+  if(!_voiceOn||!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='fr-FR';
+  u.rate=1.0;
+  u.pitch=1.1;
+  u.volume=1; // max navigateur — l'OS ducke la musique automatiquement sur iOS/Android
+  // Forcer le canal audio à priorité élevée sur certains navigateurs
+  try{
+    const ac=getAC();
+    // Jouer un silence de 1ms pour "réveiller" le canal audio et forcer la priorité
+    const buf=ac.createBuffer(1,1,ac.sampleRate);
+    const src=ac.createBufferSource();src.buffer=buf;src.connect(ac.destination);src.start();
+  }catch(e){}
+  window.speechSynthesis.speak(u);
+}
+function toggleVoice(){
+  _voiceOn=!_voiceOn;
+  localStorage.setItem('timerVoice',_voiceOn?'1':'0');
+  _updateVoiceBtn();
+  if(_voiceOn)speak('Voix activée');
+}
+function _updateVoiceBtn(){
+  const btn=document.getElementById('tVoiceBtn');
+  if(btn)btn.textContent=_voiceOn?'🔊 Voix activée':'🔇 Voix désactivée';
+}
+
+// ── Démarrage ─────────────────────────────────────
 function startTimer(w,d){
-  const prog=auth?.program||'5km';const s=getSchedule(prog,w,auth?.preferredDays||[],auth?.daysPerWeek||5)[d]?.s;
+  const prog=auth?.program||'5km';
+  const s=getSchedule(prog,w,auth?.preferredDays||[],auth?.daysPerWeek||5)[d]?.s;
   if(!s)return;closeModal();
   document.getElementById('tName').textContent=sInfo(s).title;
-  document.getElementById('tDone').style.display='none';document.getElementById('tBtns').style.display='flex';
+  document.getElementById('tDone').style.display='none';
+  document.getElementById('tBtns').style.display='flex';
   document.getElementById('tPause').textContent='⏸ Pause';
-  if(s.type==='ep')TS={total:s.dur*60,ws:s.ws,rs:s.rs,el:0,paused:false};
-  else if(s.type==='al')TS={total:s.reps*(s.run+s.walk)*60,ws:s.run*60,rs:s.walk*60,el:0,paused:false};
-  document.getElementById('timerScr').classList.add('vis');document.body.style.overflow='hidden';
-  try{getAC().resume();}catch(e){}
-  bpWork();updTimer();TI=setInterval(tickTimer,1000);
+  _updateVoiceBtn();
+
+  let workLabel='Course !',restLabel='Récupération.';
+  if(s.type==='ep'){
+    const effLabel=EFF[s.eff]?.l||'soutenu';
+    const wsStr=s.ws<60?`${s.ws} secondes`:`${s.ws/60} minute${s.ws/60>1?'s':''}`;
+    const rsStr=s.rs<60?`${s.rs} secondes`:`${s.rs/60} minute${s.rs/60>1?'s':''}`;
+    workLabel=`${wsStr} de jogging ${effLabel.toLowerCase()}`;
+    restLabel=`${rsStr} de marche, récupération`;
+    TS={total:s.dur*60,ws:s.ws,rs:s.rs,el:0,paused:false,wallStart:Date.now(),elAtWallStart:0,workLabel,restLabel};
+  } else if(s.type==='al'){
+    const effLabel=EFF[s.eff]?.l||'facile';
+    const wsStr=s.run===1?'1 minute':`${s.run} minutes`;
+    const rsStr=s.walk===1?'1 minute de marche':`${s.walk} minutes de marche`;
+    workLabel=`${wsStr} de course ${effLabel.toLowerCase()}`;
+    restLabel=rsStr;
+    TS={total:s.reps*(s.run+s.walk)*60,ws:s.run*60,rs:s.walk*60,el:0,paused:false,wallStart:Date.now(),elAtWallStart:0,workLabel,restLabel};
+  }
+  if(!TS)return;
+
+  document.getElementById('timerScr').classList.add('vis');
+  document.body.style.overflow='hidden';
+
+  const ac=getAC();
+  try{ac.resume();}catch(e){}
+  _acquireWakeLock();
+
+  // Pré-programmer TOUS les bips dès maintenant — fiable même si JS est throttlé
+  scheduleAllBeeps(TS.total,TS.ws,TS.rs);
+
+  speak(`Début. Intervalle 1. ${workLabel}`);
+  updTimer();
+  TI=setInterval(tickTimer,500);
 }
-function tPhase(){if(!TS)return'w';const c=TS.ws+TS.rs;return(TS.el%c)<TS.ws?'w':'r';}
-function tRem(){if(!TS)return 0;const c=TS.ws+TS.rs;const p=TS.el%c;return p<TS.ws?TS.ws-p:c-p;}
+
+// ── Tick (horloge murale — pas de dérive) ─────────
 function tickTimer(){
-  if(!TS||TS.paused)return;const prev=tPhase();TS.el++;
-  if(TS.el>=TS.total){bpDone();clearInterval(TI);TI=null;
-    document.getElementById('tBtns').style.display='none';document.getElementById('tDone').style.display='block';
-    document.getElementById('tPhase').className='t-phase d';document.getElementById('tPhase').textContent='TERMINÉ !';
-    document.getElementById('tCount').textContent='';document.getElementById('tIntv').textContent='';document.getElementById('tRem').textContent='';return;}
-  const cur=tPhase();const rem=tRem();
-  if(prev!==cur){cur==='w'?bpWork():bpRest();}else if(rem<=3&&rem>0)bpCnt();
+  if(!TS||TS.paused)return;
+  const wallElapsed=Math.floor((Date.now()-TS.wallStart)/1000);
+  const newEl=Math.min(TS.elAtWallStart+wallElapsed,TS.total);
+  const prev=Math.floor(TS.el/(TS.ws+TS.rs));
+  const prevPhase=tPhase();
+  TS.el=newEl;
+  if(TS.el>=TS.total){
+    // Les bips de fin sont déjà pré-programmés — juste la voix
+    speak('Séance terminée ! Bravo !');
+    clearInterval(TI);TI=null;_releaseWakeLock();
+    document.getElementById('tBtns').style.display='none';
+    document.getElementById('tDone').style.display='block';
+    document.getElementById('tPhase').className='t-phase d';
+    document.getElementById('tPhase').textContent='TERMINÉ !';
+    document.getElementById('tCount').textContent='';
+    document.getElementById('tIntv').textContent='';
+    document.getElementById('tRem').textContent='';
+    return;
+  }
+  const curPhase=tPhase();
+  // Voix seulement aux transitions de phase (les bips sont déjà pré-programmés)
+  if(prevPhase!==curPhase){
+    if(curPhase==='w'){
+      const intv=Math.floor(TS.el/(TS.ws+TS.rs))+1;
+      speak(`Intervalle ${intv}. ${TS.workLabel||'Course !'}`);
+    } else {
+      speak(TS.restLabel||'Récupération.');
+    }
+  }
   updTimer();
 }
+
+function tPhase(){if(!TS)return'w';const c=TS.ws+TS.rs;return(TS.el%c)<TS.ws?'w':'r';}
+function tRem(){if(!TS)return 0;const c=TS.ws+TS.rs;const p=TS.el%c;return p<TS.ws?TS.ws-p:c-p;}
+
 function updTimer(){
   if(!TS)return;const p=tPhase();const rem=tRem();const tot=TS.total-TS.el;const intv=Math.floor(TS.el/(TS.ws+TS.rs))+1;
   document.getElementById('tPhase').textContent=p==='w'?'COURSE 🏃':'RÉCUPÉRATION 🚶';
   document.getElementById('tPhase').className='t-phase '+(p==='w'?'w':'r');
-  document.getElementById('tCount').textContent=secStr(rem);document.getElementById('tCount').className='t-count '+(p==='w'?'w':'r');
+  document.getElementById('tCount').textContent=secStr(rem);
+  document.getElementById('tCount').className='t-count '+(p==='w'?'w':'r');
   document.getElementById('tIntv').textContent=`Intervalle ${intv}`;
   document.getElementById('tRem').textContent=`Temps restant total : ${secStr(tot)}`;
 }
-function togglePause(){if(!TS)return;TS.paused=!TS.paused;document.getElementById('tPause').textContent=TS.paused?'▶ Reprendre':'⏸ Pause';}
-function stopTimer(){clearInterval(TI);TI=null;TS=null;document.getElementById('timerScr').classList.remove('vis');document.body.style.overflow='';}
+
+function togglePause(){
+  if(!TS)return;
+  TS.paused=!TS.paused;
+  if(TS.paused){
+    TS.elAtWallStart=TS.el;
+    cancelScheduledBeeps(); // annuler les bips restants
+    _releaseWakeLock();
+    speak('Pause.');
+  } else {
+    TS.wallStart=Date.now();
+    // Reprogrammer les bips pour le temps restant
+    const remaining=TS.total-TS.el;
+    const posInCycle=TS.el%(TS.ws+TS.rs);
+    const remainInPhase=posInCycle<TS.ws?TS.ws-posInCycle:(TS.ws+TS.rs)-posInCycle;
+    // Simplifié : reprogrammer à partir de la position actuelle
+    scheduleBeepsFrom(TS.el,TS.total,TS.ws,TS.rs);
+    _acquireWakeLock();
+    speak('Reprise.');
+  }
+  document.getElementById('tPause').textContent=TS.paused?'▶ Reprendre':'⏸ Pause';
+}
+
+// Reprogrammer les bips depuis une position intermédiaire (après pause)
+function scheduleBeepsFrom(elapsedSec,totalSec,ws,rs){
+  const ac=getAC();
+  const now=ac.currentTime+0.1;
+  _scheduledBeeps=[];
+  const cycle=ws+rs;
+  // Parcourir toutes les futures transitions
+  const posInCycle=elapsedSec%cycle;
+  let nextTransition=posInCycle<ws?ws-posInCycle:cycle-posInCycle;
+  let t=nextTransition; // temps depuis maintenant jusqu'à la prochaine transition
+  while(elapsedSec+t<=totalSec){
+    const absT=elapsedSec+t;
+    const isWork=(absT%cycle)===0; // on vient de finir une récup
+    if(isWork){
+      _scheduledBeeps.push(beepAt(ac,now+t,880,120,.75));
+      _scheduledBeeps.push(beepAt(ac,now+t+0.22,880,120,.75));
+    } else {
+      _scheduledBeeps.push(beepAt(ac,now+t,440,300,.65));
+    }
+    // Compte à rebours
+    const nextT=t+cycle;
+    if(now+nextT-3>now&&elapsedSec+nextT-3<totalSec){
+      _scheduledBeeps.push(beepAt(ac,now+nextT-3,660,80,.4));
+      _scheduledBeeps.push(beepAt(ac,now+nextT-2,660,80,.4));
+      _scheduledBeeps.push(beepAt(ac,now+nextT-1,660,80,.4));
+    }
+    t+=cycle;
+  }
+  // Bips de fin
+  const endT=totalSec-elapsedSec;
+  _scheduledBeeps.push(beepAt(ac,now+endT,523,200,.8));
+  _scheduledBeeps.push(beepAt(ac,now+endT+0.3,659,200,.8));
+  _scheduledBeeps.push(beepAt(ac,now+endT+0.6,784,450,.85));
+}
+
+function stopTimer(){
+  clearInterval(TI);TI=null;
+  cancelScheduledBeeps();
+  TS=null;
+  _releaseWakeLock();
+  window.speechSynthesis?.cancel();
+  document.getElementById('timerScr').classList.remove('vis');
+  document.body.style.overflow='';
+}
 
 // ═══════════════════════════════════════════════════
 // CONFETTI
@@ -2167,6 +2894,125 @@ function applyDropMove(srcDay,destDay){
 }
 
 // ═══════════════════════════════════════════════════
+// DELETE ACCOUNT
+// ═══════════════════════════════════════════════════
+function openDelModal(){
+  document.getElementById('delPin').value='';
+  document.getElementById('delConfirm').value='';
+  document.getElementById('delErr').textContent='';
+  document.getElementById('delOverlay').classList.add('vis');
+}
+function closeDelModal(){
+  document.getElementById('delOverlay').classList.remove('vis');
+}
+async function doDeleteAccount(){
+  const pin=document.getElementById('delPin').value.trim();
+  const confirm_word=document.getElementById('delConfirm').value.trim();
+  const err=document.getElementById('delErr');
+  err.textContent='';
+  if(!/^\d{4}$/.test(pin)){err.textContent='Entre ton NIP à 4 chiffres.';return;}
+  if(confirm_word.toLowerCase()!=='confirmer'){err.textContent='Écris exactement « Confirmer » pour valider.';return;}
+  // Vérifier le NIP via l'API avant de supprimer
+  const verif=await api({action:'verify_pin',userId:auth.userId,token:auth.token,pin});
+  if(!verif.ok){err.textContent='NIP incorrect.';return;}
+  // NIP OK — supprimer
+  const r=await api({action:'delete_account',userId:auth.userId,token:auth.token});
+  if(!r.ok){err.textContent='Erreur : '+r.error;return;}
+  closeDelModal();
+  localStorage.removeItem(K.A);localStorage.removeItem(K.S);localStorage.removeItem(K.P);
+  auth=null;sessions={};pending=[];
+  toast('Compte supprimé. À bientôt !');
+  setTimeout(()=>location.reload(),1500);
+}
+
+// ═══════════════════════════════════════════════════
+// DELETE ACCOUNT
+// ═══════════════════════════════════════════════════
+function openDelModal(){
+  document.getElementById('delPin').value='';
+  document.getElementById('delConfirm').value='';
+  document.getElementById('delErr').textContent='';
+  document.getElementById('delOverlay').classList.add('vis');
+}
+function closeDelModal(){
+  document.getElementById('delOverlay').classList.remove('vis');
+}
+async function doDeleteAccount(){
+  const pin=document.getElementById('delPin').value.trim();
+  const confirm=document.getElementById('delConfirm').value.trim();
+  const errEl=document.getElementById('delErr');
+  errEl.textContent='';
+  if(!/^\d{4}$/.test(pin)){errEl.textContent='NIP invalide — 4 chiffres requis.';return;}
+  if(confirm!=='Confirmer'){errEl.textContent='Écris exactement « Confirmer » pour valider.';return;}
+  errEl.textContent='';
+  // Vérifier le NIP côté serveur avant de supprimer
+  const btnDel=document.querySelector('#delOverlay .btn.danger');
+  const origText=btnDel.textContent;
+  btnDel.textContent='Vérification…';btnDel.disabled=true;
+  const vr=await api({action:'verify_pin',userId:auth.userId,token:auth.token,pin});
+  if(!vr.ok){
+    errEl.textContent=vr.error||'NIP incorrect.';
+    btnDel.textContent=origText;btnDel.disabled=false;
+    return;
+  }
+  btnDel.textContent='Suppression…';
+  const dr=await api({action:'delete_account',userId:auth.userId,token:auth.token});
+  if(!dr.ok){
+    errEl.textContent=dr.error||'Erreur lors de la suppression.';
+    btnDel.textContent=origText;btnDel.disabled=false;
+    return;
+  }
+  // Nettoyer tout le localStorage et recharger
+  localStorage.clear();
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════════
+// SUPPRESSION DE COMPTE
+// ═══════════════════════════════════════════════════
+function openDeleteModal(){
+  closeProfile();
+  document.getElementById('delPin').value='';
+  document.getElementById('delConfirm').value='';
+  document.getElementById('delErr').textContent='';
+  document.getElementById('delBtn').disabled=false;
+  document.getElementById('delBtn').textContent='🗑 Supprimer définitivement';
+  document.getElementById('delOverlay').classList.add('vis');
+  setTimeout(()=>document.getElementById('delPin').focus(),200);
+}
+function closeDeleteModal(){
+  document.getElementById('delOverlay').classList.remove('vis');
+}
+async function doDeleteAccount(){
+  const pin=document.getElementById('delPin').value.trim();
+  const confirm=document.getElementById('delConfirm').value.trim();
+  const errEl=document.getElementById('delErr');
+  const btn=document.getElementById('delBtn');
+  errEl.textContent='';
+  if(!/^\d{4}$/.test(pin)){errEl.textContent='Entre ton NIP à 4 chiffres.';return;}
+  if(confirm!=='CONFIRMER'){errEl.textContent='Écris exactement CONFIRMER (en majuscules).';return;}
+  btn.disabled=true;btn.textContent='Suppression en cours…';
+  // Vérifier le NIP d'abord
+  const verify=await api({action:'verify_pin',userId:auth.userId,token:auth.token,pin});
+  if(!verify.ok){
+    errEl.textContent='NIP incorrect. Réessaie.';
+    btn.disabled=false;btn.textContent='🗑 Supprimer définitivement';
+    return;
+  }
+  // Supprimer le compte
+  const r=await api({action:'delete_account',userId:auth.userId,token:auth.token});
+  if(!r.ok){
+    errEl.textContent=r.error||'Erreur lors de la suppression.';
+    btn.disabled=false;btn.textContent='🗑 Supprimer définitivement';
+    return;
+  }
+  // Nettoyer localement et recharger
+  localStorage.removeItem(K.A);localStorage.removeItem(K.S);localStorage.removeItem(K.P);
+  localStorage.removeItem(K.T);
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════════
 // SERVICE WORKER UPDATE
 // ═══════════════════════════════════════════════════
 function applyUpdate(){
@@ -2187,6 +3033,64 @@ function showIosBanner(){
 }
 function closeIosBanner(){
   document.getElementById('iosBanner').classList.remove('vis');
+}
+
+// ═══════════════════════════════════════════════════
+// SWIPE TO CLOSE SHEETS
+// ═══════════════════════════════════════════════════
+function initSwipeClose(sheetId,closeFunc){
+  const el=document.getElementById(sheetId);
+  if(!el)return;
+  let startY=0,dy=0,dragging=false;
+  el.addEventListener('touchstart',e=>{
+    // Seulement si le touch commence sur le handle ou dans les 60px du haut
+    const rect=el.getBoundingClientRect();
+    if(e.touches[0].clientY-rect.top>80)return;
+    startY=e.touches[0].clientY;dragging=true;dy=0;
+    el.classList.add('dragging');
+  },{passive:true});
+  el.addEventListener('touchmove',e=>{
+    if(!dragging)return;
+    dy=Math.max(0,e.touches[0].clientY-startY);
+    el.style.transform=`translateY(${dy}px)`;
+  },{passive:true});
+  el.addEventListener('touchend',()=>{
+    if(!dragging)return;
+    dragging=false;el.classList.remove('dragging');
+    el.style.transform='';
+    if(dy>100)closeFunc();
+  },{passive:true});
+}
+
+// ═══════════════════════════════════════════════════
+// CHECK ANIMATION (bounce on complete)
+// ═══════════════════════════════════════════════════
+function animateCheck(btn){
+  btn.style.transition='transform .12s cubic-bezier(.36,.07,.19,.97)';
+  btn.style.transform='scale(1.5)';
+  setTimeout(()=>{btn.style.transform='scale(0.9)';}  ,120);
+  setTimeout(()=>{btn.style.transform='scale(1.15)';} ,220);
+  setTimeout(()=>{btn.style.transform='scale(1)';btn.style.transition='';},320);
+}
+
+// ═══════════════════════════════════════════════════
+// SYNC ERROR MESSAGING
+// ═══════════════════════════════════════════════════
+function setSyncDot(s){
+  const d=document.getElementById('syncDot');if(!d)return;
+  d.className='sync-dot'+(s==='s'?' s':s==='e'?' e':'');
+  // Afficher message discret si erreur persistante
+  if(s==='e'){
+    if(!document.getElementById('syncErrBanner')){
+      const b=document.createElement('div');
+      b.id='syncErrBanner';
+      b.style.cssText='position:fixed;top:0;left:0;right:0;background:rgba(239,68,68,.92);color:white;text-align:center;font-size:12px;font-weight:600;padding:6px;z-index:1001;';
+      b.textContent='⚠️ Hors ligne — tes données sont sauvegardées localement et seront synchronisées dès la reconnexion.';
+      document.body.appendChild(b);
+    }
+  } else {
+    document.getElementById('syncErrBanner')?.remove();
+  }
 }
 
 // ═══════════════════════════════════════════════════
