@@ -958,15 +958,38 @@ function getSchedule(prog,week,prefDays,dpw){
 let CW=1,activeScreen=0;
 let auth=null;
 let sessions={};
+// pending est un Array (pour JSON serialize) mais on utilise _pendingSet pour les checks O(1)
 let pending=[];
+let _pendingSet=new Set();
+function addPending(k){if(!_pendingSet.has(k)){_pendingSet.add(k);pending.push(k);}}
 let mWeek=0,mDay=0;
 let schedWeek=0,schedDay=0; // reschedule state
 const K={A:'p5k_auth',S:'p5k_sess',P:'p5k_pending',T:'p5k_theme'};
+
+// ─── DEBOUNCE ────────────────────────────────────────────────
+function debounce(fn,ms){
+  let tid;
+  return function(...args){clearTimeout(tid);tid=setTimeout(()=>fn.apply(this,args),ms);};
+}
+function escHtml(str){
+  if(!str)return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+// Version qui autorise les sauts de ligne comme <br> (mais échappe tout le reste)
+function escHtmlBr(str){
+  return escHtml(str).replace(/\n/g,'<br>');
+}
 
 function loadL(){
   try{auth=JSON.parse(localStorage.getItem(K.A)||'null');}catch(e){auth=null;}
   try{sessions=JSON.parse(localStorage.getItem(K.S)||'{}');}catch(e){sessions={};}
   try{pending=JSON.parse(localStorage.getItem(K.P)||'[]');}catch(e){pending=[];}
+  _pendingSet=new Set(pending);
 }
 let _locallyDirty=false;
 let _lastFetchTime=0;
@@ -978,7 +1001,7 @@ function saveL(){
     if(!s||(!s.completed&&!s.partial&&!s.note&&!s.feeling&&!s.comment&&s.movedTo==null&&s.movedTo!==0))delete sessions[k];
   });
   // Cap pending à 200 entrées max
-  if(pending.length>200)pending=pending.slice(-200);
+  if(pending.length>200){pending=pending.slice(-200);_pendingSet=new Set(pending);}
   invalidateSchedCache();
   _locallyDirty=true;
   localStorage.setItem(K.S,JSON.stringify(sessions));
@@ -1032,11 +1055,26 @@ async function api(payload,timeoutMs=10000){
     const fd=new FormData();fd.append('data',JSON.stringify(payload));
     const r=await fetch(SCRIPT_URL,{method:'POST',body:fd,signal:ctrl.signal});
     clearTimeout(tid);
-    return await r.json();
+    const result=await r.json();
+    // Fix 8 : token expiré → forcer reconnexion propre
+    if(!result.ok&&result.error&&result.error.includes('Session expir')&&auth){
+      _handleSessionExpired();
+    }
+    return result;
   }catch(e){
     if(e.name==='AbortError')return{ok:false,error:'Délai dépassé — vérifie ta connexion.'};
     return{ok:false,error:'Hors ligne'};
   }
+}
+function _handleSessionExpired(){
+  // Évite les boucles si on est déjà sur l'écran login
+  if(!auth)return;
+  toast('⚠️ Session expirée — reconnecte-toi.',4000);
+  setTimeout(()=>{
+    localStorage.removeItem(K.A);
+    sessions={};pending=[];_pendingSet=new Set();saveL();auth=null;
+    location.reload();
+  },2500);
 }
 function setSyncDotOld_unused(){} // replaced above
 async function syncPending(){
@@ -1047,9 +1085,13 @@ async function syncPending(){
   const r=await api({action:'sync',userId:auth.userId,token:auth.token,
     sessions:toSync.map(k=>{const[w,d]=k.replace('w','').split('d').map(Number);const s=sessions[k]||{};
       return{week:w,day:d,...s};})});
-  if(r.ok){pending=pending.filter(k=>!toSync.includes(k));saveL();setSyncDot('ok');}
+  if(r.ok){pending=pending.filter(k=>!toSync.includes(k));_pendingSet=new Set(pending);saveL();setSyncDot('ok');}
   else setSyncDot('e');
 }
+// Fix 4 : debouncer sync (évite un fetch par clic)
+const debouncedSync=debounce(syncPending,2000);
+// Fix 6 : debouncer saveL (évite serialisation JSON à chaque keystroke)
+const debouncedSave=debounce(saveL,300);
 async function fetchData(){
   if(!auth||!navigator.onLine)return;
   const r=await api({action:'get_data',userId:auth.userId,token:auth.token});
@@ -1107,6 +1149,7 @@ async function doRegister(){
   const pin=document.getElementById('rPin').value.trim();
   if(pseudo.length<2){document.getElementById('rErr').textContent='Au moins 2 caractères.';return;}
   if(!/^\d{4}$/.test(pin)){document.getElementById('rErr').textContent='NIP : exactement 4 chiffres.';return;}
+  if(!navigator.onLine){document.getElementById('rErr').textContent='⚠️ Pas de connexion internet. Connecte-toi pour créer un compte.';return;}
   document.getElementById('rErr').textContent='';
   hide('regPanel');show('authLoad');
   const r=await api({action:'register',pseudo,pin});
@@ -1119,6 +1162,7 @@ async function doLogin(){
   const pseudo=document.getElementById('lPseudo').value.trim();
   const pin=document.getElementById('lPin').value.trim();
   if(!pseudo||!pin){document.getElementById('lErr').textContent='Remplis les deux champs.';return;}
+  if(!navigator.onLine){document.getElementById('lErr').textContent='⚠️ Pas de connexion internet. Vérifie ta connexion et réessaie.';return;}
   document.getElementById('lErr').textContent='';
   hide('logPanel');show('authLoad');
   const r=await api({action:'login',pseudo,pin});
@@ -1128,7 +1172,7 @@ async function doLogin(){
     program:r.program||'5km',daysPerWeek:r.daysPerWeek||5,preferredDays:r.preferredDays||[]};
   saveA();hide('authScr');await fetchData();launchApp();
 }
-function logout(){if(!confirm('Déconnexion ?'))return;localStorage.removeItem(K.A);sessions={};pending=[];saveL();auth=null;location.reload();}
+function logout(){if(!confirm('Déconnexion ?'))return;localStorage.removeItem(K.A);sessions={};pending=[];_pendingSet=new Set();saveL();auth=null;location.reload();}
 
 // ═══════════════════════════════════════════════════
 // ONBOARDING
@@ -1295,8 +1339,8 @@ function goScreen(n){
     document.getElementById(`scr${i}`)?.classList.toggle('on',i===n);
     document.getElementById(`bnt${i}`)?.classList.toggle('on',i===n);
   }
-  // Render si sale ou forcé
-  if(_dirtyScreens.has(n)||true){
+  // Render si sale (données modifiées depuis dernier affichage)
+  if(_dirtyScreens.has(n)){
     switch(n){case 0:renderDash();break;case 1:renderProg();break;case 2:renderStats();break;case 3:renderSettings();break;}
     _dirtyScreens.delete(n);
   }
@@ -1644,8 +1688,8 @@ function toggleDone(e,w,d){
     navigator.vibrate&&navigator.vibrate(15);
   }
   sessions[k].timestamp=new Date().toISOString();
-  if(!pending.includes(k))pending.push(k);
-  saveL();renderProg();syncPending();
+  addPending(k);
+  saveL();renderProg();debouncedSync();
   // Animate the check button after re-render
   requestAnimationFrame(()=>{
     const chkBtn=document.querySelector(`.day-card[data-day="${d}"] .chk`);
@@ -1707,8 +1751,8 @@ function applyReschedule(newDay){
   if(!sessions[k])sessions[k]={};
   sessions[k].movedTo=newDay;
   sessions[k].timestamp=new Date().toISOString();
-  if(!pending.includes(k))pending.push(k);
-  saveL();syncPending();
+  addPending(k);
+  saveL();debouncedSync();
   closeReschedule();
   renderProg();
   toast(`✅ Séance déplacée vers ${DNAMES[newDay]}`);
@@ -1718,8 +1762,8 @@ function cancelReschedule(){
   if(!sessions[k])sessions[k]={};
   sessions[k].movedTo=null;
   sessions[k].timestamp=new Date().toISOString();
-  if(!pending.includes(k))pending.push(k);
-  saveL();syncPending();
+  addPending(k);
+  saveL();debouncedSync();
   closeReschedule();
   renderProg();
   toast('↩ Séance remise à sa place originale');
@@ -1805,8 +1849,8 @@ function renderStats(){
               <div style="font-size:10px;color:var(--muted)">Sem. ${e.w} · ${DNAMES[e.d]} · ${when} ${feel}</div>
             </div>
           </div>
-          ${e.sess.note?`<div style="font-size:11px;color:var(--text);line-height:1.4;padding-left:24px">${e.sess.note.substring(0,120)}${e.sess.note.length>120?'…':''}</div>`:''}
-          ${e.sess.comment?`<div style="font-size:11px;color:var(--muted);font-style:italic;line-height:1.4;padding-left:24px">${e.sess.comment.substring(0,80)}${e.sess.comment.length>80?'…':''}</div>`:''}
+          ${e.sess.note?`<div style="font-size:11px;color:var(--text);line-height:1.4;padding-left:24px">${escHtml(e.sess.note.substring(0,120))}${e.sess.note.length>120?'…':''}</div>`:''}
+          ${e.sess.comment?`<div style="font-size:11px;color:var(--muted);font-style:italic;line-height:1.4;padding-left:24px">${escHtml(e.sess.comment.substring(0,80))}${e.sess.comment.length>80?'…':''}</div>`:''}
         </div>`;
       }).join('');
     }
@@ -2233,13 +2277,13 @@ function buildModal(s,di,e,sess,info){
     <div class="msec-t">📝 Mon journal de course${hasNote?' <span style="color:var(--orange);font-size:9px;letter-spacing:0;font-weight:700">● REMPLI</span>':''}</div>
     ${hasNote&&(sess.note||sess.comment)?`<div style="background:rgba(249,115,22,.08);border-radius:8px;padding:8px 10px;margin-bottom:10px;border-left:3px solid var(--orange)">
       ${sess.feeling?`<div style="font-size:20px;margin-bottom:4px">${['','😓','😕','😐','😊','🏆'][sess.feeling]}</div>`:''}
-      ${sess.note?`<div style="font-size:12px;color:var(--text);line-height:1.5;margin-bottom:${sess.comment?'6px':'0'}">${sess.note.replace(/\n/g,'<br>')}</div>`:''}
-      ${sess.comment?`<div style="font-size:11px;color:var(--muted);line-height:1.5;font-style:italic">${sess.comment.replace(/\n/g,'<br>')}</div>`:''}
+      ${sess.note?`<div style="font-size:12px;color:var(--text);line-height:1.5;margin-bottom:${sess.comment?'6px':'0'}">${escHtmlBr(sess.note)}</div>`:''}
+      ${sess.comment?`<div style="font-size:11px;color:var(--muted);line-height:1.5;font-style:italic">${escHtmlBr(sess.comment)}</div>`:''}
     </div>`:''}
     <p style="font-size:12px;color:var(--muted);margin-bottom:8px">${hasNote?'Modifier ta note :':'Comment s\'est passée cette séance ?'}</p>
     <div class="feel-row">${[1,2,3,4,5].map(f=>`<button class="feel-btn ${sess.feeling==f?'sel':''}" onclick="setFeeling(${mWeek},${di},${f})">${['','😓','😕','😐','😊','🏆'][f]}</button>`).join('')}</div>
-    <textarea class="jtxt" id="jNote" placeholder="Notes (ressenti, distance, météo…)">${sess.note||''}</textarea>
-    <textarea class="jtxt" id="jCom" placeholder="Commentaire libre (douleurs, fierté, anecdote…)">${sess.comment||''}</textarea>
+    <textarea class="jtxt" id="jNote" placeholder="Notes (ressenti, distance, météo…)" maxlength="500">${escHtml(sess.note||'')}</textarea>
+    <textarea class="jtxt" id="jCom" placeholder="Commentaire libre (douleurs, fierté, anecdote…)" maxlength="500">${escHtml(sess.comment||'')}</textarea>
     <button class="jsave" onclick="saveJournal(${mWeek},${di})">💾 Sauvegarder</button>
   </div>`;
   return h;
@@ -2294,14 +2338,13 @@ function saveJournal(w,d){
   sessions[k].note=document.getElementById('jNote')?.value||'';
   sessions[k].comment=document.getElementById('jCom')?.value||'';
   sessions[k].timestamp=new Date().toISOString();
-  if(!pending.includes(k))pending.push(k);
-  saveL();renderProg();syncPending();
-  const b=document.querySelector('.jsave');if(b){b.textContent='✅ Sauvegardé !';setTimeout(()=>b.textContent='💾 Sauvegarder',1500);}
+  addPending(k);
+  saveL();renderProg();debouncedSync();;if(b){b.textContent='✅ Sauvegardé !';setTimeout(()=>b.textContent='💾 Sauvegarder',1500);}
 }
 function setFeeling(w,d,f){
   const k=sk(w,d);if(!sessions[k])sessions[k]={};
   sessions[k].feeling=f;sessions[k].timestamp=new Date().toISOString();
-  if(!pending.includes(k))pending.push(k);saveL();syncPending();
+  addPending(k);debouncedSave();debouncedSync();
   document.querySelectorAll('.feel-btn').forEach((b,i)=>b.classList.toggle('sel',i+1===f));
 }
 
@@ -2422,6 +2465,9 @@ function _releaseWakeLock(){
   if(_wakeLock){_wakeLock.release().catch(()=>{});_wakeLock=null;}
 }
 document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&_confettiRaf){cancelAnimationFrame(_confettiRaf);_confettiRaf=null;
+    const canvas=document.getElementById('confettiCanvas');
+    if(canvas)canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);}
   if(!document.hidden&&TS&&!TS.paused)_acquireWakeLock();
 });
 
@@ -2615,19 +2661,25 @@ function stopTimer(){
 // ═══════════════════════════════════════════════════
 // CONFETTI
 // ═══════════════════════════════════════════════════
+let _confettiRaf=null;
 function fireConfetti(){
+  if(_confettiRaf){cancelAnimationFrame(_confettiRaf);_confettiRaf=null;}
   const canvas=document.getElementById('confettiCanvas');
   canvas.width=window.innerWidth;canvas.height=window.innerHeight;
   const ctx=canvas.getContext('2d');
   const pieces=[];const colors=['#F97316','#3B82F6','#22C55E','#EAB308','#A855F7','#EF4444','#14B8A6'];
   for(let i=0;i<120;i++)pieces.push({x:Math.random()*canvas.width,y:-20,w:Math.random()*10+5,h:Math.random()*8+4,rot:Math.random()*360,rv:Math.random()*8-4,vx:Math.random()*4-2,vy:Math.random()*4+2,color:colors[Math.floor(Math.random()*colors.length)],op:1});
   let frame=0;
-  function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     pieces.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.rot+=p.rv;p.vy+=.05;if(frame>80)p.op=Math.max(0,p.op-.015);
       ctx.save();ctx.globalAlpha=p.op;ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);
       ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});
-    frame++;if(frame<120&&pieces.some(p=>p.op>0))requestAnimationFrame(draw);else ctx.clearRect(0,0,canvas.width,canvas.height);}
-  draw();
+    frame++;
+    if(frame<120&&pieces.some(p=>p.op>0)){_confettiRaf=requestAnimationFrame(draw);}
+    else{ctx.clearRect(0,0,canvas.width,canvas.height);_confettiRaf=null;}
+  }
+  _confettiRaf=requestAnimationFrame(draw);
 }
 
 // ═══════════════════════════════════════════════════
@@ -2653,7 +2705,7 @@ function doPrint(mode){
     return`<table><thead><tr><th>Jour</th><th>Séance</th><th>Détail</th><th>Durée</th><th>Effort</th><th>✓ / Notes</th></tr></thead><tbody>
     ${sched.map((item,i)=>{const info=sInfo(item.s);const sess=gs(w,i)||{};const feel=sess.feeling?['','😓','😕','😐','😊','🏆'][sess.feeling]:'';
       const movedNote=item.movedFrom!==null&&item.movedFrom!==undefined?` (↩ depuis ${DSHORT[item.movedFrom]})`:item.movedAway?` (→ ${DSHORT[gs(w,i)?.movedTo]})` : '';
-      return`<tr><td style="font-weight:bold;white-space:nowrap">${DNAMES[i]}</td><td>${info.title}${item.optional?' <em style="color:#888">(opt.)</em>':''}${movedNote}</td><td style="color:#555">${info.desc}</td><td style="text-align:center;white-space:nowrap">${info.dur||'—'}</td><td style="text-align:center">${item.s.eff?item.s.eff+'/10':''}</td><td>${sess.completed?'✅':''} ${feel} ${(sess.note||'').substring(0,40)}</td></tr>`;
+      return`<tr><td style="font-weight:bold;white-space:nowrap">${DNAMES[i]}</td><td>${info.title}${item.optional?' <em style="color:#888">(opt.)</em>':''}${movedNote}</td><td style="color:#555">${info.desc}</td><td style="text-align:center;white-space:nowrap">${info.dur||'—'}</td><td style="text-align:center">${item.s.eff?item.s.eff+'/10':''}</td><td>${sess.completed?'✅':''} ${feel} ${escHtml((sess.note||'').substring(0,40))}</td></tr>`;
     }).join('')}</tbody></table>`;
   }
   let body=`<h1>${lbl}</h1><p style="color:#666;margin:3px 0 12px;font-size:10pt">${dpw} jours/semaine · Basé sur les programmes de la Clinique du Coureur</p>`;
@@ -2861,9 +2913,8 @@ function conflictBoth(){
   pushUndo(`Double séance ${DNAMES[conflictDest]}`,sessions);
   const k=sk(CW,conflictSrc);if(!sessions[k])sessions[k]={};
   sessions[k].movedTo=conflictDest;sessions[k].timestamp=new Date().toISOString();
-  if(!pending.includes(k))pending.push(k);
-  saveL();syncPending();renderProg();
-  toast(`✅ Les deux séances sont le ${DNAMES[conflictDest]}`);
+  addPending(k);
+  saveL();debouncedSync();renderProg();
 }
 function conflictShift(){
   if(conflictSrc===null||conflictDest===null)return;closeConflict();
@@ -2872,20 +2923,19 @@ function conflictShift(){
   // move src to conflictDest, move dest session to newDest
   const kSrc=sk(CW,conflictSrc);if(!sessions[kSrc])sessions[kSrc]={};
   sessions[kSrc].movedTo=conflictDest;sessions[kSrc].timestamp=new Date().toISOString();
-  if(!pending.includes(kSrc))pending.push(kSrc);
+  addPending(kSrc);
   const kDest=sk(CW,conflictDest);if(!sessions[kDest])sessions[kDest]={};
   sessions[kDest].movedTo=newDest;sessions[kDest].timestamp=new Date().toISOString();
-  if(!pending.includes(kDest))pending.push(kDest);
-  saveL();syncPending();renderProg();
+  addPending(kDest);
+  saveL();debouncedSync();renderProg();
   toast(`✅ Séances réorganisées`);
 }
 function applyDropMove(srcDay,destDay){
   pushUndo(`Séance déplacée → ${DNAMES[destDay]}`,sessions);
   const k=sk(CW,srcDay);if(!sessions[k])sessions[k]={};
   sessions[k].movedTo=destDay;sessions[k].timestamp=new Date().toISOString();
-  if(!pending.includes(k))pending.push(k);
-  saveL();syncPending();renderProg();
-  toast(`✅ Séance déplacée vers ${DNAMES[destDay]}`);
+  addPending(k);
+  saveL();debouncedSync();renderProg();
 }
 
 // ═══════════════════════════════════════════════════
@@ -3032,6 +3082,21 @@ function triggerInstall(){
 // ═══════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════
+// ─── SCHEMA MIGRATION ──────────────────────────────────────
+// Si on incrémente SCHEMA_VERSION dans le futur, migrer ici.
+const SCHEMA_VERSION=1;
+(function migrateSchema(){
+  const stored=parseInt(localStorage.getItem('p5k_schema')||'0');
+  if(stored===SCHEMA_VERSION)return;
+  if(stored===0){
+    // v0→v1 : première mise en place, rien à migrer structurellement
+    // (les données existantes sont compatibles)
+    console.log('[schema] Migration v0→v1 : aucune action requise');
+  }
+  // Ajouter ici les migrations futures :
+  // if(stored<=1){ /* migration v1→v2 */ }
+  localStorage.setItem('p5k_schema',String(SCHEMA_VERSION));
+})();
 loadL();
 applyTheme(localStorage.getItem(K.T)||'light'); // thème clair par défaut
 if(auth){launchApp();}
