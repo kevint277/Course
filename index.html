@@ -963,7 +963,7 @@ let pending=[];
 let _pendingSet=new Set();
 function addPending(k){if(!_pendingSet.has(k)){_pendingSet.add(k);pending.push(k);}}
 let mWeek=0,mDay=0;
-let schedWeek=0,schedDay=0; // reschedule state
+let schedWeek=0,schedDay=0; // reschedule state — also declared in reschedule section (dedupe below)
 const K={A:'p5k_auth',S:'p5k_sess',P:'p5k_pending',T:'p5k_theme'};
 
 // ─── DEBOUNCE ────────────────────────────────────────────────
@@ -1576,7 +1576,9 @@ function renderProg(dir){
     const{s,req,optional,movedAway,movedFrom,stackedSession}=item;
     const realCW=calcCW()||1;
     const todayDow=(new Date().getDay()+6)%7; // 0=Lundi
-    const isToday=(CW===realCW)&&(i===todayDow);
+    // N'afficher "Aujourd'hui" que si le programme a commencé
+    const progStarted=!!(auth?.startDate&&new Date(auth.startDate+'T12:00:00')<=new Date());
+    const isToday=progStarted&&(CW===realCW)&&(i===todayDow);
 
     // Carte origine (séance déplacée ailleurs) → repos neutre, sans explication
     if(movedAway){
@@ -1706,36 +1708,60 @@ function toggleDone(e,w,d){
 }
 
 // ═══════════════════════════════════════════════════
-// RESCHEDULE
+// RESCHEDULE — système de déplacement robuste
 // ═══════════════════════════════════════════════════
+
+// Retourne la clé ORIGINALE (jour programme) d'une séance affichée à visualDay.
+// Une séance peut avoir été déplacée là depuis un autre jour (movedFrom!=null).
+// On doit toujours écrire sur la clé originale pour éviter les effets fantôme.
+function getOrigDay(w, visualDay){
+  const prog=auth?.program||'5km';
+  const pref=auth?.preferredDays||[];
+  const dpw=auth?.daysPerWeek||5;
+  const sched=getSchedule(prog,w,pref,dpw);
+  const item=sched[visualDay];
+  if(!item||item.s.type==='r')return null;
+  if(item.movedAway)return null;
+  // Si la séance a été déplacée ICI depuis movedFrom, la clé originale est movedFrom
+  if(item.movedFrom!==null&&item.movedFrom!==undefined)return item.movedFrom;
+  return visualDay;
+}
+
+// ── Reschedule sheet (bouton 📅) ─────────────────────
 function openReschedule(e,w,d){
   e.stopPropagation();
   schedWeek=w;schedDay=d;
   const prog=auth?.program||'5km';const dpw=auth?.daysPerWeek||5;const pref=auth?.preferredDays||[];
   const sched=getSchedule(prog,w,pref,dpw);
-  const origItem=sched[d];
-  if(!origItem||origItem.s.type==='r')return;
-  const info=sInfo(origItem.s);
-  const curMoved=gs(w,d)?.movedTo;
+  const item=sched[d];
+  if(!item||item.s.type==='r'||item.movedAway)return;
+  const info=sInfo(item.s);
+  // Trouve la clé originale pour lire le movedTo actuel
+  const origDay=getOrigDay(w,d);
+  const curMoved=origDay!==null?gs(w,origDay)?.movedTo:null;
   document.getElementById('schedTitle').textContent=info.title;
-  document.getElementById('schedInfo').textContent=`Choisis le jour où tu veux faire cette séance (${DNAMES[d]} → nouveau jour). La séance originale sera marquée comme déplacée.`;
-  document.getElementById('schedCancelBtn').style.display=curMoved!==undefined&&curMoved!==null?'':'none';
-  // Build day grid
+  document.getElementById('schedInfo').textContent=
+    `Choisis le jour où déplacer "${info.title}" (${DNAMES[d]} → nouveau jour).`;
+  document.getElementById('schedCancelBtn').style.display=
+    (curMoved!==undefined&&curMoved!==null)?'':'none';
+  // Grille des 7 jours — affiche le schedule actuel pour que l'user voie ce qui est déjà occupé
   const grid=document.getElementById('schedGrid');grid.innerHTML='';
-  const baseAll=PROGS[prog]?.[w]||Array(7).fill(R());
   DNAMES.forEach((name,di)=>{
+    const schedItem=sched[di];
     const isOrigin=di===d;
     const isTarget=curMoved===di;
-    const daySession=baseAll[di];
-    const hasRealSess=daySession&&daySession.type!=='r';
+    const hasReal=schedItem&&schedItem.s.type!=='r'&&!schedItem.movedAway&&!isOrigin;
     const btn=document.createElement('div');
     let cls='sched-day';
     if(isOrigin)cls+=' origin';
     else if(isTarget)cls+=' target';
-    else if(hasRealSess&&di!==d)cls+=' has-sess';
+    else if(hasReal)cls+=' has-sess';
     btn.className=cls;
-    const sessLabel=isOrigin?info.title.substring(0,12)+'…':(hasRealSess?sInfo(daySession).title.substring(0,10)+'…':'Libre');
-    btn.innerHTML=`<div class="sd-name">${DSHORT[di]}</div><div class="sd-sess">${sessLabel}</div><div class="sd-badge">${isOrigin?'Origine':isTarget?'✓ Ici':''}</div>`;
+    const lbl=isOrigin?info.title.substring(0,12)+'…':
+               hasReal?sInfo(schedItem.s).title.substring(0,10)+'…':'Libre';
+    btn.innerHTML=`<div class="sd-name">${DSHORT[di]}</div>
+      <div class="sd-sess">${lbl}</div>
+      <div class="sd-badge">${isOrigin?'Source':isTarget?'✓ Ici':''}</div>`;
     if(!isOrigin){btn.onclick=()=>applyReschedule(di);}
     else{btn.style.cursor='default';}
     grid.appendChild(btn);
@@ -1746,8 +1772,11 @@ function openReschedule(e,w,d){
 }
 
 function applyReschedule(newDay){
+  // Toujours écrire sur la clé ORIGINALE de la séance
+  const origDay=getOrigDay(schedWeek,schedDay);
+  if(origDay===null){toast('❌ Séance introuvable.');closeReschedule();return;}
   pushUndo(`Séance déplacée → ${DNAMES[newDay]}`,sessions);
-  const k=sk(schedWeek,schedDay);
+  const k=sk(schedWeek,origDay);
   if(!sessions[k])sessions[k]={};
   sessions[k].movedTo=newDay;
   sessions[k].timestamp=new Date().toISOString();
@@ -1758,7 +1787,9 @@ function applyReschedule(newDay){
   toast(`✅ Séance déplacée vers ${DNAMES[newDay]}`);
 }
 function cancelReschedule(){
-  const k=sk(schedWeek,schedDay);
+  const origDay=getOrigDay(schedWeek,schedDay);
+  if(origDay===null){closeReschedule();return;}
+  const k=sk(schedWeek,origDay);
   if(!sessions[k])sessions[k]={};
   sessions[k].movedTo=null;
   sessions[k].timestamp=new Date().toISOString();
@@ -2339,7 +2370,12 @@ function saveJournal(w,d){
   sessions[k].comment=document.getElementById('jCom')?.value||'';
   sessions[k].timestamp=new Date().toISOString();
   addPending(k);
-  saveL();renderProg();debouncedSync();;if(b){b.textContent='✅ Sauvegardé !';setTimeout(()=>b.textContent='💾 Sauvegarder',1500);}
+  saveL();debouncedSync();
+  // Update button text — modal is still open
+  const b=document.querySelector('.jsave');
+  if(b){b.textContent='✅ Sauvegardé !';setTimeout(()=>{if(b)b.textContent='💾 Sauvegarder';},1500);}
+  // Refresh day card feel indicator without full re-render
+  renderProg();
 }
 function setFeeling(w,d,f){
   const k=sk(w,d);if(!sessions[k])sessions[k]={};
@@ -2876,11 +2912,14 @@ function handleDrop(srcDay,destDay){
   const prog=auth?.program||'5km';const dpw=auth?.daysPerWeek||5;const pref=auth?.preferredDays||[];
   const sched=getSchedule(prog,CW,pref,dpw);
   const srcItem=sched[srcDay];
-  if(!srcItem||srcItem.s.type==='r')return;
+  // La source doit être une séance draggable (non-repos, non-race, non-vide)
+  if(!srcItem||srcItem.s.type==='r'||srcItem.movedAway)return;
+  const origSrc=getOrigDay(CW,srcDay);
+  if(origSrc===null)return;
   const destItem=sched[destDay];
+  // La destination est occupée si elle a une séance réelle visible (pas movedAway)
   const destHasReal=destItem&&destItem.s.type!=='r'&&!destItem.movedAway;
   if(destHasReal){
-    // Conflict — ask user
     showConflict(srcDay,destDay,srcItem,destItem);
   } else {
     applyDropMove(srcDay,destDay);
@@ -2899,53 +2938,78 @@ function showConflict(srcDay,destDay,srcItem,destItem){
     `<strong>${DNAMES[srcDay]}</strong> → <strong>${DNAMES[destDay]}</strong><br><br>`+
     `Il y a déjà une séance ce jour-là : <strong>${destInfo.title}</strong>.<br><br>Que veux-tu faire ?`;
   document.getElementById('conflictBtns').innerHTML=`
-    <button class="btn primary" style="margin:0" onclick="conflictReplace()">Déplacer quand même (remplacer)</button>
-    <button class="btn" style="margin:0" onclick="conflictBoth()">📅 Mettre les deux le même jour</button>
-    <button class="btn" style="margin:0" onclick="conflictShift()">Décaler ${DNAMES[destDay]} au lendemain</button>
+    <button class="btn primary" style="margin:0" onclick="conflictReplace()">Remplacer la séance existante</button>
+    <button class="btn" style="margin:0" onclick="conflictBoth()">📅 Faire les deux le même jour</button>
+    <button class="btn" style="margin:0" onclick="conflictShift()">Décaler "${DNAMES[destDay]}" au lendemain</button>
     <button class="btn ghost" style="margin:0" onclick="closeConflict()">Annuler</button>`;
   document.getElementById('conflictOverlay').classList.add('vis');
 }
 function closeConflict(){document.getElementById('conflictOverlay').classList.remove('vis');conflictSrc=null;conflictDest=null;}
+
 function conflictReplace(){
   const src=conflictSrc,dest=conflictDest;
   if(src===null||dest===null)return;
   closeConflict();
   applyDropMove(src,dest);
 }
+
 function conflictBoth(){
   const src=conflictSrc,dest=conflictDest;
   if(src===null||dest===null)return;
   closeConflict();
+  // Trouver la clé originale de la séance source
+  const origSrc=getOrigDay(CW,src);
+  if(origSrc===null){toast('❌ Séance source introuvable.');return;}
   pushUndo(`Double séance ${DNAMES[dest]}`,sessions);
-  const k=sk(CW,src);if(!sessions[k])sessions[k]={};
-  sessions[k].movedTo=dest;sessions[k].timestamp=new Date().toISOString();
+  const k=sk(CW,origSrc);
+  if(!sessions[k])sessions[k]={};
+  sessions[k].movedTo=dest;
+  sessions[k].timestamp=new Date().toISOString();
   addPending(k);
   saveL();debouncedSync();renderProg();
   toast(`📅 Les deux séances sont le ${DNAMES[dest]}`);
 }
+
 function conflictShift(){
   const src=conflictSrc,dest=conflictDest;
   if(src===null||dest===null)return;
   closeConflict();
   const newDest=(dest+1)%7;
-  pushUndo(`Séance décalée vers ${DNAMES[newDest]}`,sessions);
+  // Clés originales des DEUX séances concernées
+  const origSrc=getOrigDay(CW,src);
+  const origDest=getOrigDay(CW,dest);
+  if(origSrc===null){toast('❌ Séance source introuvable.');return;}
+  pushUndo(`Séances réorganisées`,sessions);
   // Déplacer src → dest
-  const kSrc=sk(CW,src);if(!sessions[kSrc])sessions[kSrc]={};
-  sessions[kSrc].movedTo=dest;sessions[kSrc].timestamp=new Date().toISOString();
+  const kSrc=sk(CW,origSrc);
+  if(!sessions[kSrc])sessions[kSrc]={};
+  sessions[kSrc].movedTo=dest;
+  sessions[kSrc].timestamp=new Date().toISOString();
   addPending(kSrc);
-  // Déplacer l'occupant de dest → newDest
-  const kDest=sk(CW,dest);if(!sessions[kDest])sessions[kDest]={};
-  sessions[kDest].movedTo=newDest;sessions[kDest].timestamp=new Date().toISOString();
-  addPending(kDest);
+  // Déplacer l'occupant de dest → newDest (seulement s'il existe)
+  if(origDest!==null){
+    const kDest=sk(CW,origDest);
+    if(!sessions[kDest])sessions[kDest]={};
+    sessions[kDest].movedTo=newDest;
+    sessions[kDest].timestamp=new Date().toISOString();
+    addPending(kDest);
+  }
   saveL();debouncedSync();renderProg();
-  toast(`✅ ${DNAMES[src]} → ${DNAMES[dest]}, ${DNAMES[dest]} → ${DNAMES[newDest]}`);
+  toast(`✅ ${DNAMES[src]} → ${DNAMES[dest]}${origDest!==null?', '+DNAMES[dest]+' → '+DNAMES[newDest]:''}`);
 }
+
 function applyDropMove(srcDay,destDay){
+  // Trouver la clé ORIGINALE de la séance draggée
+  const origSrc=getOrigDay(CW,srcDay);
+  if(origSrc===null){toast('❌ Séance introuvable.');return;}
   pushUndo(`Séance déplacée → ${DNAMES[destDay]}`,sessions);
-  const k=sk(CW,srcDay);if(!sessions[k])sessions[k]={};
-  sessions[k].movedTo=destDay;sessions[k].timestamp=new Date().toISOString();
+  const k=sk(CW,origSrc);
+  if(!sessions[k])sessions[k]={};
+  sessions[k].movedTo=destDay;
+  sessions[k].timestamp=new Date().toISOString();
   addPending(k);
   saveL();debouncedSync();renderProg();
+  toast(`✅ Déplacé vers ${DNAMES[destDay]}`);
 }
 
 // ═══════════════════════════════════════════════════
@@ -3113,9 +3177,7 @@ const SCHEMA_VERSION=1;
   const stored=parseInt(localStorage.getItem('p5k_schema')||'0');
   if(stored===SCHEMA_VERSION)return;
   if(stored===0){
-    // v0→v1 : première mise en place, rien à migrer structurellement
-    // (les données existantes sont compatibles)
-    console.log('[schema] Migration v0→v1 : aucune action requise');
+    // v0→v1 : première mise en place, rien à migrer
   }
   // Ajouter ici les migrations futures :
   // if(stored<=1){ /* migration v1→v2 */ }
@@ -3127,3 +3189,4 @@ if(auth){launchApp();}
 </script>
 </body>
 </html>
+                                                                                                                                          
