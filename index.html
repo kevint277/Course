@@ -734,24 +734,6 @@ select.inp{cursor:pointer}
   </div>
 </div>
 
-<!-- Delete account modal -->
-<div class="del-overlay" id="delOverlay">
-  <div class="del-box">
-    <div class="del-title">⚠️ Supprimer mon compte</div>
-    <div class="del-desc">Cette action est <strong>irréversible</strong>. Toute ta progression, tes données et ton compte seront définitivement effacés.</div>
-    <div class="del-warn">🔴 Il n'y a aucun moyen de récupérer tes données après la suppression.</div>
-    <label class="del-label">Ton NIP à 4 chiffres</label>
-    <div class="pin-wrap" style="margin-bottom:10px">
-      <input type="password" id="delPin" class="inp" placeholder="NIP" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" autocomplete="current-password" style="letter-spacing:6px;font-size:20px;padding-right:10px">
-    </div>
-    <label class="del-label">Écris <strong style="color:var(--red)">Confirmer</strong> pour valider</label>
-    <input type="text" id="delConfirm" class="inp" placeholder="Confirmer" autocomplete="off" style="margin-bottom:6px">
-    <div class="del-err" id="delErr"></div>
-    <button class="btn danger" onclick="doDeleteAccount()" style="margin-bottom:8px">🗑 Supprimer définitivement</button>
-    <button class="btn ghost" onclick="closeDelModal()">Annuler</button>
-  </div>
-</div>
-
 <!-- Update banner -->
 <div class="update-banner" id="updateBanner">
   <span>🆕 Nouvelle version disponible !</span>
@@ -771,24 +753,6 @@ select.inp{cursor:pointer}
     <div class="ios-step"><div class="ios-step-num">1</div><span>Appuie sur <em>Partager</em> <em>⬆️</em> en bas de Safari</span></div>
     <div class="ios-step"><div class="ios-step-num">2</div><span>Fais défiler et choisis <em>« Sur l'écran d'accueil »</em></span></div>
     <div class="ios-step"><div class="ios-step-num">3</div><span>Appuie sur <em>Ajouter</em> — l'app apparaîtra sur ton écran !</span></div>
-  </div>
-</div>
-
-<!-- Delete account modal -->
-<div class="del-overlay" id="delOverlay">
-  <div class="del-box">
-    <div class="del-title">⚠️ Supprimer le compte</div>
-    <div class="del-warn">
-      Cette action est <strong>définitive et irréversible</strong>.<br>
-      Ton compte, ta progression et toutes tes données seront supprimés de façon permanente.
-    </div>
-    <span class="del-label">Ton NIP à 4 chiffres</span>
-    <input type="password" id="delPin" class="inp" placeholder="NIP" maxlength="4" inputmode="numeric" autocomplete="off" style="margin-bottom:10px;letter-spacing:6px;font-size:20px;text-align:center">
-    <span class="del-label">Écris <strong>CONFIRMER</strong> pour valider</span>
-    <input type="text" id="delConfirm" class="inp" placeholder="CONFIRMER" autocomplete="off" style="margin-bottom:4px">
-    <div class="del-err" id="delErr"></div>
-    <button class="btn danger" onclick="doDeleteAccount()" style="margin-top:4px;margin-bottom:8px" id="delBtn">🗑 Supprimer définitivement</button>
-    <button class="btn ghost" onclick="closeDeleteModal()" style="margin-bottom:0">Annuler</button>
   </div>
 </div>
 
@@ -1958,9 +1922,6 @@ function openProfile(){
     </div>
     <button class="btn primary" onclick="saveProfile()" style="margin-top:4px">💾 Sauvegarder</button>
     <button class="btn danger" onclick="logout()" style="margin-top:0">🚪 Déconnexion</button>
-    <button class="btn" onclick="openDeleteModal()" style="margin-top:0;color:var(--red);border-color:rgba(239,68,68,.2);font-size:12px">🗑 Supprimer mon compte</button>
-    <div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
-    <button class="btn" style="margin:0;color:var(--red);border-color:rgba(239,68,68,.2);font-size:13px" onclick="openDelModal()">🗑 Supprimer mon compte…</button>
     <button class="btn" onclick="closeProfile();openDelModal()" style="margin-top:0;color:var(--red);border-color:rgba(239,68,68,.2);font-size:12px">🗑 Supprimer mon compte…</button>
   `;
   document.getElementById('profOverlay').classList.add('open');
@@ -3076,19 +3037,22 @@ function animateCheck(btn){
 // ═══════════════════════════════════════════════════
 // SYNC ERROR MESSAGING
 // ═══════════════════════════════════════════════════
+let _syncErrCount=0;
 function setSyncDot(s){
   const d=document.getElementById('syncDot');if(!d)return;
   d.className='sync-dot'+(s==='s'?' s':s==='e'?' e':'');
-  // Afficher message discret si erreur persistante
   if(s==='e'){
-    if(!document.getElementById('syncErrBanner')){
+    _syncErrCount++;
+    // N'afficher la bannière qu'après 3 échecs consécutifs (évite les faux positifs)
+    if(_syncErrCount>=3&&!document.getElementById('syncErrBanner')){
       const b=document.createElement('div');
       b.id='syncErrBanner';
-      b.style.cssText='position:fixed;top:0;left:0;right:0;background:rgba(239,68,68,.92);color:white;text-align:center;font-size:12px;font-weight:600;padding:6px;z-index:1001;';
-      b.textContent='⚠️ Hors ligne — tes données sont sauvegardées localement et seront synchronisées dès la reconnexion.';
+      b.style.cssText='position:fixed;top:0;left:0;right:0;background:rgba(239,68,68,.92);color:white;text-align:center;font-size:12px;font-weight:600;padding:6px 40px;z-index:1001;display:flex;align-items:center;justify-content:center;gap:10px';
+      b.innerHTML='⚠️ Hors ligne — tes données sont sauvegardées localement. <button onclick="this.parentElement.remove();_syncErrCount=0" style="background:rgba(255,255,255,.25);border:none;color:white;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px">✕</button>';
       document.body.appendChild(b);
     }
   } else {
+    _syncErrCount=0;
     document.getElementById('syncErrBanner')?.remove();
   }
 }
