@@ -179,6 +179,10 @@ select.inp{cursor:pointer}
 .day-card.repos{opacity:.4}
 .day-card.done{border-color:rgba(34,197,94,.4)}
 .day-card.optional{opacity:.6}
+.day-card.today{border-left-color:var(--orange)!important;border-top-color:var(--orange)!important;border-right-color:var(--orange)!important;border-bottom-color:var(--orange)!important;border-width:1.5px!important}
+.today-pip{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--orange);margin-right:5px;flex-shrink:0;animation:todayPulse 2s ease-in-out infinite}
+.today-lbl{font-size:9px;font-weight:700;color:var(--orange);letter-spacing:.5px;text-transform:uppercase;margin-top:1px;line-height:1}
+@keyframes todayPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
 .d-acc{width:4px;flex-shrink:0}
 .d-body{flex:1;padding:9px 11px;display:flex;align-items:center;gap:9px;min-width:0}
 .d-namecol{min-width:60px;flex-shrink:0}
@@ -723,14 +727,14 @@ select.inp{cursor:pointer}
 <div class="del-overlay" id="delOverlay">
   <div class="del-box">
     <div class="del-title">⚠️ Supprimer mon compte</div>
-    <div class="del-desc">Cette action est <strong>irréversible</strong>. Toute ta progression, tes séances et ton compte seront définitivement supprimés.<br><br>Pour confirmer, entre ton NIP et écris le mot <strong>Confirmer</strong> ci-dessous.</div>
+    <div class="del-desc">Cette action est <strong>irréversible</strong>. Toute ta progression, tes séances et ton compte seront définitivement supprimés.<br><br>Entre ton NIP et écris <strong>CONFIRMER</strong> (en majuscules) ci-dessous.</div>
     <label class="del-field-label">Ton NIP (4 chiffres)</label>
     <input type="password" id="delPin" class="inp" placeholder="••••" maxlength="4" inputmode="numeric" style="margin-bottom:12px">
-    <label class="del-field-label">Écris « Confirmer » pour valider</label>
-    <input type="text" id="delConfirm" class="inp" placeholder="Confirmer" autocomplete="off" style="margin-bottom:6px">
+    <label class="del-field-label">Écris CONFIRMER (en majuscules)</label>
+    <input type="text" id="delConfirm" class="inp" placeholder="CONFIRMER" autocomplete="off" autocorrect="off" autocapitalize="characters" style="margin-bottom:6px">
     <div class="err" id="delErr" style="margin-bottom:10px"></div>
-    <button class="btn danger" onclick="doDeleteAccount()" style="margin-bottom:8px">🗑 Supprimer définitivement</button>
-    <button class="btn ghost" onclick="closeDelModal()">Annuler</button>
+    <button class="btn danger" id="delBtn" onclick="doDeleteAccount()" style="margin-bottom:8px">🗑 Supprimer définitivement</button>
+    <button class="btn ghost" onclick="closeDeleteModal()">Annuler</button>
   </div>
 </div>
 
@@ -1526,16 +1530,22 @@ function renderProg(dir){
   }
   sched.forEach((item,i)=>{
     const{s,req,optional,movedAway,movedFrom,stackedSession}=item;
+    const realCW=calcCW()||1;
+    const todayDow=(new Date().getDay()+6)%7; // 0=Lundi
+    const isToday=(CW===realCW)&&(i===todayDow);
 
     // Carte origine (séance déplacée ailleurs) → repos neutre, sans explication
     if(movedAway){
       const card=document.createElement('div');
-      card.className='day-card repos';
+      card.className='day-card repos'+(isToday?' today':'');
       card.dataset.day=i;
       card.innerHTML=`
         <div class="d-acc ar"></div>
         <div class="d-body">
-          <div class="d-namecol"><div class="d-name">${DNAMES[i]}</div></div>
+          <div class="d-namecol">
+            <div class="d-name">${isToday?'<span class="today-pip"></span>':''}${DNAMES[i]}</div>
+            ${isToday?'<div class="today-lbl">Aujourd\'hui</div>':''}
+          </div>
           <div class="d-info"><div class="d-title" style="color:var(--muted)">Repos</div></div>
           <div class="d-right"><span class="badge drest">Repos</span></div>
         </div>`;
@@ -1553,6 +1563,7 @@ function renderProg(dir){
     if(done)cls+=' done';
     if(optional&&!isRest)cls+=' optional';
     if(!isRest||stackedSession)cls+=' clickable';
+    if(isToday)cls+=' today';
     if(isRace)card.style.cssText='border-color:rgba(249,115,22,.4);background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(239,68,68,.06))';
     const hasSched=!isRest&&!isRace;
     card.className=cls;
@@ -1562,7 +1573,10 @@ function renderProg(dir){
       <div class="d-acc ${info.ac}"></div>
       <div style="flex:1;display:flex;flex-direction:column;min-width:0">
         <div class="d-body" ${(!isRest||stackedSession)?`onclick="openModal(${i})"`:''}> 
-          <div class="d-namecol"><div class="d-name">${DNAMES[i]}</div></div>
+          <div class="d-namecol">
+            <div class="d-name">${isToday?'<span class="today-pip"></span>':''}${DNAMES[i]}</div>
+            ${isToday?'<div class="today-lbl">Aujourd\'hui</div>':''}
+          </div>
           <div class="d-info">
             <div class="d-title" ${isRace?'style="color:var(--orange)"':''}>${info.title}</div>
             ${info.desc?`<div class="d-desc">${info.desc}</div>`:''}
@@ -1886,6 +1900,26 @@ function openProfile(){
   document.getElementById('profSub').textContent=`Programme ${prog.toUpperCase()} · ${dpw} jours/sem.`;
   pDaysTmp=[...pref];
   document.getElementById('profBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:16px">
+      ${(()=>{
+        const{done,total,streak}=computeStats();
+        const cw=calcCW()||1;
+        const pct=total>0?Math.round(done/total*100):0;
+        return`
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:11px;padding:10px 6px;text-align:center;box-shadow:var(--shadow)">
+          <div style="font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--orange)">${cw}<span style="font-size:13px;font-weight:400;color:var(--muted)">/18</span></div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:2px">Semaine</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:11px;padding:10px 6px;text-align:center;box-shadow:var(--shadow)">
+          <div style="font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--orange)">${pct}<span style="font-size:13px;font-weight:400;color:var(--muted)">%</span></div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:2px">Complétion</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:11px;padding:10px 6px;text-align:center;box-shadow:var(--shadow)">
+          <div style="font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--orange)">${streak}🔥</div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:2px">Streak</div>
+        </div>`;
+      })()}
+    </div>
     <div class="prof-section">
       <span class="prof-label">Programme</span>
       <div class="prof-seg">
@@ -1922,7 +1956,7 @@ function openProfile(){
     </div>
     <button class="btn primary" onclick="saveProfile()" style="margin-top:4px">💾 Sauvegarder</button>
     <button class="btn danger" onclick="logout()" style="margin-top:0">🚪 Déconnexion</button>
-    <button class="btn" onclick="closeProfile();openDelModal()" style="margin-top:0;color:var(--red);border-color:rgba(239,68,68,.2);font-size:12px">🗑 Supprimer mon compte…</button>
+    <button class="btn" onclick="openDeleteModal()" style="margin-top:0;color:var(--red);border-color:rgba(239,68,68,.2);font-size:12px">🗑 Supprimer mon compte…</button>
   `;
   document.getElementById('profOverlay').classList.add('open');
   document.getElementById('profSheet').classList.add('open');
@@ -2852,80 +2886,6 @@ function applyDropMove(srcDay,destDay){
   if(!pending.includes(k))pending.push(k);
   saveL();syncPending();renderProg();
   toast(`✅ Séance déplacée vers ${DNAMES[destDay]}`);
-}
-
-// ═══════════════════════════════════════════════════
-// DELETE ACCOUNT
-// ═══════════════════════════════════════════════════
-function openDelModal(){
-  document.getElementById('delPin').value='';
-  document.getElementById('delConfirm').value='';
-  document.getElementById('delErr').textContent='';
-  document.getElementById('delOverlay').classList.add('vis');
-}
-function closeDelModal(){
-  document.getElementById('delOverlay').classList.remove('vis');
-}
-async function doDeleteAccount(){
-  const pin=document.getElementById('delPin').value.trim();
-  const confirm_word=document.getElementById('delConfirm').value.trim();
-  const err=document.getElementById('delErr');
-  err.textContent='';
-  if(!/^\d{4}$/.test(pin)){err.textContent='Entre ton NIP à 4 chiffres.';return;}
-  if(confirm_word.toLowerCase()!=='confirmer'){err.textContent='Écris exactement « Confirmer » pour valider.';return;}
-  // Vérifier le NIP via l'API avant de supprimer
-  const verif=await api({action:'verify_pin',userId:auth.userId,token:auth.token,pin});
-  if(!verif.ok){err.textContent='NIP incorrect.';return;}
-  // NIP OK — supprimer
-  const r=await api({action:'delete_account',userId:auth.userId,token:auth.token});
-  if(!r.ok){err.textContent='Erreur : '+r.error;return;}
-  closeDelModal();
-  localStorage.removeItem(K.A);localStorage.removeItem(K.S);localStorage.removeItem(K.P);
-  auth=null;sessions={};pending=[];
-  toast('Compte supprimé. À bientôt !');
-  setTimeout(()=>location.reload(),1500);
-}
-
-// ═══════════════════════════════════════════════════
-// DELETE ACCOUNT
-// ═══════════════════════════════════════════════════
-function openDelModal(){
-  document.getElementById('delPin').value='';
-  document.getElementById('delConfirm').value='';
-  document.getElementById('delErr').textContent='';
-  document.getElementById('delOverlay').classList.add('vis');
-}
-function closeDelModal(){
-  document.getElementById('delOverlay').classList.remove('vis');
-}
-async function doDeleteAccount(){
-  const pin=document.getElementById('delPin').value.trim();
-  const confirm=document.getElementById('delConfirm').value.trim();
-  const errEl=document.getElementById('delErr');
-  errEl.textContent='';
-  if(!/^\d{4}$/.test(pin)){errEl.textContent='NIP invalide — 4 chiffres requis.';return;}
-  if(confirm!=='Confirmer'){errEl.textContent='Écris exactement « Confirmer » pour valider.';return;}
-  errEl.textContent='';
-  // Vérifier le NIP côté serveur avant de supprimer
-  const btnDel=document.querySelector('#delOverlay .btn.danger');
-  const origText=btnDel.textContent;
-  btnDel.textContent='Vérification…';btnDel.disabled=true;
-  const vr=await api({action:'verify_pin',userId:auth.userId,token:auth.token,pin});
-  if(!vr.ok){
-    errEl.textContent=vr.error||'NIP incorrect.';
-    btnDel.textContent=origText;btnDel.disabled=false;
-    return;
-  }
-  btnDel.textContent='Suppression…';
-  const dr=await api({action:'delete_account',userId:auth.userId,token:auth.token});
-  if(!dr.ok){
-    errEl.textContent=dr.error||'Erreur lors de la suppression.';
-    btnDel.textContent=origText;btnDel.disabled=false;
-    return;
-  }
-  // Nettoyer tout le localStorage et recharger
-  localStorage.clear();
-  location.reload();
 }
 
 // ═══════════════════════════════════════════════════
