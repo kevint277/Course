@@ -2906,29 +2906,39 @@ function showConflict(srcDay,destDay,srcItem,destItem){
   document.getElementById('conflictOverlay').classList.add('vis');
 }
 function closeConflict(){document.getElementById('conflictOverlay').classList.remove('vis');conflictSrc=null;conflictDest=null;}
-function conflictReplace(){closeConflict();applyDropMove(conflictSrc,conflictDest);}
+function conflictReplace(){
+  const src=conflictSrc,dest=conflictDest;
+  if(src===null||dest===null)return;
+  closeConflict();
+  applyDropMove(src,dest);
+}
 function conflictBoth(){
-  // Mark both as scheduled that day — append note to dest session
-  if(conflictSrc===null)return;closeConflict();
-  pushUndo(`Double séance ${DNAMES[conflictDest]}`,sessions);
-  const k=sk(CW,conflictSrc);if(!sessions[k])sessions[k]={};
-  sessions[k].movedTo=conflictDest;sessions[k].timestamp=new Date().toISOString();
+  const src=conflictSrc,dest=conflictDest;
+  if(src===null||dest===null)return;
+  closeConflict();
+  pushUndo(`Double séance ${DNAMES[dest]}`,sessions);
+  const k=sk(CW,src);if(!sessions[k])sessions[k]={};
+  sessions[k].movedTo=dest;sessions[k].timestamp=new Date().toISOString();
   addPending(k);
   saveL();debouncedSync();renderProg();
+  toast(`📅 Les deux séances sont le ${DNAMES[dest]}`);
 }
 function conflictShift(){
-  if(conflictSrc===null||conflictDest===null)return;closeConflict();
-  const newDest=(conflictDest+1)%7;
+  const src=conflictSrc,dest=conflictDest;
+  if(src===null||dest===null)return;
+  closeConflict();
+  const newDest=(dest+1)%7;
   pushUndo(`Séance décalée vers ${DNAMES[newDest]}`,sessions);
-  // move src to conflictDest, move dest session to newDest
-  const kSrc=sk(CW,conflictSrc);if(!sessions[kSrc])sessions[kSrc]={};
-  sessions[kSrc].movedTo=conflictDest;sessions[kSrc].timestamp=new Date().toISOString();
+  // Déplacer src → dest
+  const kSrc=sk(CW,src);if(!sessions[kSrc])sessions[kSrc]={};
+  sessions[kSrc].movedTo=dest;sessions[kSrc].timestamp=new Date().toISOString();
   addPending(kSrc);
-  const kDest=sk(CW,conflictDest);if(!sessions[kDest])sessions[kDest]={};
+  // Déplacer l'occupant de dest → newDest
+  const kDest=sk(CW,dest);if(!sessions[kDest])sessions[kDest]={};
   sessions[kDest].movedTo=newDest;sessions[kDest].timestamp=new Date().toISOString();
   addPending(kDest);
   saveL();debouncedSync();renderProg();
-  toast(`✅ Séances réorganisées`);
+  toast(`✅ ${DNAMES[src]} → ${DNAMES[dest]}, ${DNAMES[dest]} → ${DNAMES[newDest]}`);
 }
 function applyDropMove(srcDay,destDay){
   pushUndo(`Séance déplacée → ${DNAMES[destDay]}`,sessions);
@@ -2962,25 +2972,39 @@ async function doDeleteAccount(){
   errEl.textContent='';
   if(!/^\d{4}$/.test(pin)){errEl.textContent='Entre ton NIP à 4 chiffres.';return;}
   if(confirm!=='CONFIRMER'){errEl.textContent='Écris exactement CONFIRMER (en majuscules).';return;}
-  btn.disabled=true;btn.textContent='Suppression en cours…';
-  // Vérifier le NIP d'abord
+
+  // Étape 1 : verrouiller le bouton + spinner
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin" style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px"></span>Vérification du NIP…';
+  errEl.textContent='';
+
+  // Étape 2 : vérifier le NIP (un seul aller-retour)
   const verify=await api({action:'verify_pin',userId:auth.userId,token:auth.token,pin});
   if(!verify.ok){
     errEl.textContent='NIP incorrect. Réessaie.';
     btn.disabled=false;btn.textContent='🗑 Supprimer définitivement';
     return;
   }
-  // Supprimer le compte
+
+  // Étape 3 : supprimer
+  btn.innerHTML='<span class="spin" style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px"></span>Suppression en cours…';
   const r=await api({action:'delete_account',userId:auth.userId,token:auth.token});
   if(!r.ok){
     errEl.textContent=r.error||'Erreur lors de la suppression.';
     btn.disabled=false;btn.textContent='🗑 Supprimer définitivement';
     return;
   }
-  // Nettoyer localement et recharger
-  localStorage.removeItem(K.A);localStorage.removeItem(K.S);localStorage.removeItem(K.P);
-  localStorage.removeItem(K.T);
-  location.reload();
+
+  // Étape 4 : confirmation visuelle avant rechargement
+  btn.textContent='✅ Compte supprimé !';
+  errEl.style.color='var(--green)';
+  errEl.textContent='Ton compte et toutes tes données ont été supprimés. À bientôt !';
+  // Nettoyer le localStorage et recharger après un délai pour que l'utilisateur lise le message
+  setTimeout(()=>{
+    localStorage.removeItem(K.A);localStorage.removeItem(K.S);localStorage.removeItem(K.P);
+    localStorage.removeItem(K.T);localStorage.removeItem('p5k_schema');
+    location.reload();
+  },2200);
 }
 
 // ═══════════════════════════════════════════════════
